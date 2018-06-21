@@ -1,0 +1,66 @@
+body{
+	font-family: 'Segoe UI';
+}
+
+#divMap {
+	width: 100%;
+	height: 450px;
+	border: 1px solid rgb(194,225,242);
+	background-color: rgb(194,225,242);
+
+}
+
+#divMap .ol-zoom .ol-zoom-out {
+  margin-top: 204px;
+}
+#divMap .ol-zoomslider {
+  background-color: transparent;
+  top: 2.3em;
+}
+
+#divMap .ol-touch .ol-zoom .ol-zoom-out {
+  margin-top: 212px;
+}
+#divMap .ol-touch .ol-zoomslider {
+  top: 2.75em;
+}
+
+#divMap .ol-zoom-in.ol-has-tooltip:hover [role=tooltip],
+#divMap .ol-zoom-in.ol-has-tooltip:focus [role=tooltip] {
+  top: 3px;
+}
+
+#divMap .ol-zoom-out.ol-has-tooltip:hover [role=tooltip],
+#divMap .ol-zoom-out.ol-has-tooltip:focus [role=tooltip] {
+  top: 232px;
+}
+
+.mouse-position{
+	font-size: 14px;
+	line-height: 20px;
+	color: #333;
+}
+
+.table{
+border-collapse: collapse;
+	padding: 0;
+	margin: 0;
+	border: 1px solid black;
+	text-align: justify;
+    text-justify: inter-word;
+}
+
+.table td,tr{
+	border: 1px solid black;
+	padding: 0;
+	margin: 0;
+	text-align: justify;
+    
+}
+
+tr#tr01 {
+    color:black;
+	background-color: rgb(1,150,120) ;
+	font-style:italic;
+	font-weight: bold;
+}

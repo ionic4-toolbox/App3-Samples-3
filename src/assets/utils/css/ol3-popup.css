@@ -1,0 +1,87 @@
+.ol-popup {
+    display: none;
+    position: absolute;
+    background-color: white;
+    padding: 4px;
+    border: 1px solid #cccccc;
+	border-radius: 10px;
+    bottom: 12px;
+    left: -50px;
+}
+
+.ol-popup:after, .ol-popup:before {
+    top: 100%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+}
+
+.ol-popup:after {
+    border-top-color: white;
+    border-width: 10px;
+    left: 48px;
+    margin-left: -10px;
+}
+
+.ol-popup:before {
+    border-top-color: #cccccc;
+    border-width: 11px;
+    left: 48px;
+    margin-left: -11px;
+}
+
+.ol-popup-content {
+    min-width: 100px;
+	max-width: 400px;
+
+    overflow-x: auto;
+    margin-top: 19px;
+
+}
+
+.ol-popup-content p, h1, h2, h3, h4, h5, h6{
+	/*line-height: 15px;*/
+
+    margin-left: 5%;
+
+    margin-right: 5%;
+
+}
+
+.ol-popup-content h1, h2, h3{
+	font-size: 12pt;
+	font-weight: bold;
+}
+
+.ol-popup-closer {
+    position: absolute;
+    right: 1px;
+    font-size: 100%;
+    padding: 0 4px;
+    color: gray;
+    text-decoration: none;
+}
+
+.ol-popup-closer:after {
+    content: "\2716";
+}
+
+.ol-popup div.infoResult {
+    min-width: 130px;
+}
+
+.ol-popup div.infoResult p {
+    padding: 0.1em;
+    margin: 0;
+}
+
+.ol-popup-content h3 {
+    margin: 0.25em 0;
+}
+
+.ol-popup.marker {
+    margin-bottom: 30px;
+}

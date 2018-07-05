@@ -35,6 +35,7 @@ var view;
 
 function OpenLayersInit(mapID, mapExtent, centerPosition, zoomLevel, geocodeControl, coordinateControl){
 
+	
 	// Default Values
 	geocodeControl = typeof geocodeControl !== 'undefined' ? geocodeControl : true;
 	coordinateControl = typeof coordinateControl !== 'undefined' ? coordinateControl : true;
@@ -128,34 +129,18 @@ function OpenLayersInit(mapID, mapExtent, centerPosition, zoomLevel, geocodeCont
     var wmsSource = new ol.source.TileWMS({
         params: { 'LAYERS': 'idesoi:Basecuba', 'TILED': true, VERSION: '1.1.1' },
         //crossOrigin: 'anonymous',
-        url: 'http://10.9.5.52:8080/geoserver/idesoi/wms'
-	});
-	
-	var wmsBuildingSource = new ol.source.TileWMS({
-        params: {'LAYERS': 'Capa:PARCELAS_CH_DB', 'TILED': true, VERSION: '1.1.1'},
-        //crossOrigin: 'anonymous',
-        url: 'http://10.9.12.159:8080/geoserver/idesoi/wms'
-	});
-	
-	
-
+        url: 'http://192.168.137.1:1234/geoserver/idesoi/wms'
+    });
 
     var mapLayers = new ol.layer.Tile({
             title: 'Planimetría GeoServer',
             type: 'base',
             extent: mapExtent,
-            source: wmsSource,
-		});
-		
-		var mapLayerBuilding = new ol.layer.Tile({
-            title: 'Edificios',
-            type: 'radio',
-            extent: mapExtent,
-            source: wmsBuildingSource,
+            source: wmsSource
         });
 
 
-		
+
 
 	// Coordinate Format
 	var myFormat = function () {
@@ -246,11 +231,11 @@ function OpenLayersInit(mapID, mapExtent, centerPosition, zoomLevel, geocodeCont
 	map = new ol.Map({
 	  controls: ol.control.defaults({
 		attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
-		  //collapsible: false
+		  collapsible: false
 		})
 	  })/*.extend([mousePositionControl, new app.GeocodeAddressControl()])*/,
 	  //interactions : ol.interaction.defaults({doubleClickZoom :false}),
-	  layers: [mapLayers,mapLayerBuilding],
+	  layers: [mapLayers],
 	  target: mapID,
 	  logo: false,
 	  view: view
@@ -259,8 +244,8 @@ function OpenLayersInit(mapID, mapExtent, centerPosition, zoomLevel, geocodeCont
 	// -- Display information on singleclick --
 
 	// Create a popup overlay which will be used to display feature info
-	var popup = new ol.Overlay.Popup();
-	map.addOverlay(popup);
+	// var popup = new ol.Overlay.Popup();
+	// map.addOverlay(popup);
 
 	// Add an event handler for the map "singleclick" event
 	// map.on('singleclick', function(evt) {
@@ -296,8 +281,8 @@ function OpenLayersInit(mapID, mapExtent, centerPosition, zoomLevel, geocodeCont
 
     map.on('singleclick', function(evt) {
 
-		popup.hide();
-		 popup.setOffset([0, 0]);
+		// popup.hide();
+		//  popup.setOffset([0, 0]);
 		 
       var feature = map.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
         return feature;
@@ -321,11 +306,13 @@ function OpenLayersInit(mapID, mapExtent, centerPosition, zoomLevel, geocodeCont
 				if(response.features.length != 0){
 
 					if(feature == undefined){
-						var info = getInfoFromJson(response);
-						
-						popup.show(evt.coordinate,info);
+						getInfoFromJson(response);
+												
+						//popup.show(evt.coordinate,info);
 					}else{
-						ShowInfo (feature, popup, evt.coordinate);
+						getInfoFromFeature(feature);
+						//ShowInfo (feature, popup, evt.coordinate);
+						
 						
 					}
 				
@@ -361,15 +348,10 @@ function OpenLayersInit(mapID, mapExtent, centerPosition, zoomLevel, geocodeCont
 	if (geocodeControl)
 		map.addControl(new geocodeAddressControl());
 
-		
+		functionInitLayer();
 }
 
-function buildingLayer(feature){
-	var olLayer = CreateLayer('Edificios');
-	var source = oLayer.getSource();
 
-    source.addFeature(feature);
-}
 // Functions
 /**
  *
@@ -1672,11 +1654,6 @@ function geoloctionFunction(){
 	var geolocation = new ol.Geolocation();
     geolocation.setTracking(true);
 
-	//alert(a);
-
-		//sleep(4000);
-		$("#loader").show();
-
 
 		setTimeout(function(){
 			//alert("Acepte la localizacion del navegador");
@@ -1760,101 +1737,28 @@ function geoloctionFunction(){
 				var previusLat = 0;
 
 				setInterval(function(){
-                    geolocation.setTracking(true);
+					geolocation.setTracking(true);
+					
                         position = geolocation.getPosition();
                         long = position[0];
                         lat = position[1];
                         pointer.long = long;
-                        pointer.lat = lat;
+						pointer.lat = lat;
+						setCoordinateGPS(position);
 						if(long != previusLong && lat != previusLat) {
-
-							//alert(long +" "+ lat);
 
 							var raster = CreateObject(layer, long, lat, null);
 							raster.setStyle(style.PointRaster);
-
-							//previusLat = lat;
-							//previusLong = long;
-                            //alert(lat+" "+long);
 					}
 
 				},1000);
 
-
-
-					//geolocation.on('change:position', function () {
-					//	position = geolocation.getPosition();
-					//	long = position[0];
-					//	lat = position[1];
-                    //
-					//	feature.long = long;
-					//	feature.lat = lat;
-					//	ZoomToFeature(feature, 17);
-                    //
-					//});
-
-					//GPX Section
-
-					//var projection = ol.proj.get('EPSG:3857');
-
-				//	var raster = new ol.layer.Tile({
-				//		source: new ol.source.BingMaps({
-				//			imagerySet: 'Aerial',
-				//			key: 'Ak-dzM4wZjSqTlzveKz5u0d4IQ4bRzVI309GxmkgSVr1ewS6iPSrOvOKhA-CJlm3'
-				//		})
-				//	});
-                //
-
-                //
-				//	var vector = new ol.layer.Vector({
-				//		source: new ol.source.Vector({
-				//			url: 'ol/fells_loop.gpx',
-				//			format: new ol.format.GPX()
-				//		}),
-				//		style: function(feature, resolution) {
-				//			return style[feature.getGeometry().getType()];
-				//		}
-				//	});
-                //
-				//	var displayFeatureInfo = function(pixel) {
-				//		var features = [];
-				//		map.forEachFeatureAtPixel(pixel, function(feature, layer) {
-				//			features.push(feature);
-				//		});
-				//		if (features.length > 0) {
-				//			var info = [];
-				//			var i, ii;
-				//			for (i = 0, ii = features.length; i < ii; ++i) {
-				//				info.push(features[i].get('desc'));
-				//			}
-				//			document.getElementById('info').innerHTML = info.join(', ') || '(unknown)';
-				//			map.getTarget().style.cursor = 'pointer';
-				//		} else {
-				//			document.getElementById('info').innerHTML = '&nbsp;';
-				//			map.getTarget().style.cursor = '';
-				//		}
-				//	};
-                //
-				//	map.on('pointermove', function(evt) {
-				//		if (evt.dragging) {
-				//			return;
-				//		}
-				//		var pixel = map.getEventPixel(evt.originalEvent);
-				//		displayFeatureInfo(pixel);
-				//	});
-                //
-				//	map.on('click', function(evt) {
-				//		displayFeatureInfo(evt.pixel);
-				//	});
-                //
-				//	ZoomToFeature(feature, 17);
 				}
 				else {
 					//$("#appearMessage").fadeIn(2000,'easing',false);
 
 					//$("#messageContent").html('<h3>Disculpe no se ha encontrado su posision</h3>');
-					$('#modalError1').modal('show');
-					$('#messageContent1').html('No se ha encontrado su posision');
+					
 				}
 
 		},3000);

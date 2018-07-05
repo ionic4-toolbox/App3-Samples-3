@@ -1,0 +1,21 @@
+page-modal-directory-proximity-mode {
+    .scroll-content{
+        overflow-y: scroll;
+      }
+      @media only screen and (min-height: 600px) and (min-width: 768px){
+        .md .modal-wrapper {
+            border-radius: 2px;
+            top: 0;
+            overflow: hidden;
+            -webkit-box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
+          }
+        }
+        
+}
+ion-modal{
+  height: 50%;
+  position: relative;
+  top: 50%;
+  
+}

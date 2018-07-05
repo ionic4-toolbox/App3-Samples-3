@@ -9,7 +9,7 @@ function getHello(){
 	return "hello";
 }
 function MapInit(){
-  	OpenLayersInit('olmap', [-180.0, -90.0, 180.0, 90.0], [ -82.3636,23.1340], 15, true , true);
+  	OpenLayersInit('olmap', [-180.0, -90.0, 180.0, 90.0], [ -82.4168,23.0531], 15, true , true);
 	currentLayer = new CreateLayer("Initial");
   //  OpenLayersInit('olmap2', [-180.0, -90.0, 180.0, 90.0], [ -82.3636,23.1402], 15, true , true);
 
@@ -198,8 +198,6 @@ function MapInit(){
 	//drawAll();
   //renderScreen();
 }
-
-
 
 // Función delegada llamada en modo "Get Point" para capturar
 // la coordenada en el mapa durante el evento "click".

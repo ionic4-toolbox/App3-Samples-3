@@ -6,21 +6,33 @@ var isVisibleWay = 0;
 let initPoint =0;
 let finalPoint=0;
 let selectedMode = 'Basic';
+let isCoordinateActive=false;
+let coordinateGPS = 0;
+let layer;
 
-function drawAll(){
+function functionInitLayer(){
+    layer = CreateLayer('Point');
+}
 
-   // getAreasAjax();
-   // getBuildingsAjax();
-    getStreetAjax();
-   // getPoiAjax();
-    // process1();
-    // process2();
-    //renderScreen();
+function setCoordinateGPS(gps){
+    this.coordinateGPS = gps;
 }
 
 function setModalSelectedRoute(){
-    selectedMode = 'Route';
-    setCoordinatesMode();
+    if(isCoordinateActive == false){
+        selectedMode = 'Route';
+        if(coordinateGPS !=0){
+            initPoint = coordinateGPS;
+        }
+        setCoordinatesMode()
+        isCoordinateActive = true;
+        document.getElementById('coordBoutomId').style.background = 'blue';
+    }else{
+        isCoordinateActive = false;
+        document.getElementById('coordBoutomId').style.background = '#488aff';
+        setInfoMode();
+        
+    }
 }
 function setModalSelectedDirectDistance(){
     
@@ -30,11 +42,11 @@ function setModalSelectedDirectDistance(){
 
 function setModalSelectedDirectProximity(){
     selectedMode = 'Proximity';
-    setCoordinatesMode();
+    setCoordinatesMode()
 }
 
 function insetCoords(coord){
-    let layer = CreateLayer('Point');
+    
     
     if(initPoint == 0){
         initPoint = coord;
@@ -42,25 +54,21 @@ function insetCoords(coord){
         if(selectedMode == 'Route'){
             // document.getElementById('ruteInitialPoint').value = initPoint;
             drawPoint(layer,initPoint[0],initPoint[1],null);
-        }
+        }else
+            if(selectedMode == 'Distance'){
+                document.getElementById('coordinateLabel').innerHTML ='Coordenadas : '+initPoint;
+                drawPoint(layer,initPoint[0],initPoint[1],null);
+            }else if(selectedMode == 'Proximity'){
+                document.getElementById('coordinateLabel').innerHTML ='Coordenadas : '+initPoint;
+                drawPoint(layer,initPoint[0],initPoint[1],null);
+            }
     }else{
         if(finalPoint == 0 && selectedMode == 'Route'){
-            finalPoint = coord;
-            let layers = CreateLayer('Point');
-    
-            
-            // document.getElementById('ruteFinalPoint').value = finalPoint;
+            finalPoint = coord;           
             routeRequest();
-            drawPoint(layers,finalPoint[0],finalPoint[1],null);
-                       
+            drawPoint(layer,finalPoint[0],finalPoint[1],null);                      
         }
-        if(selectedMode == 'Distance'){
-            document.getElementById('coordinateLabel').value ="Si";
-            drawPoint(layer,initPoint[0],initPoint[1],null);
-        }else if(selectedMode == 'Proximity'){
-            document.getElementById('coordinateLabel').value ="Si";
-            drawPoint(layer,initPoint[0],initPoint[1],null);
-        }
+        
     }
 }
 
@@ -95,51 +103,13 @@ function clearPoints(){
         document.getElementById('ruteInitialPoint').value = '';
         document.getElementById('ruteFinalPoint').value = '';
     }
-        DeleteLayerByName('Ruta');
+
+    DeleteLayerByName('Ruta');
     DeleteLayerByName('Point');
-    
+    layer = CreateLayer('Point');
+    document.getElementById('labelDistance').style.display='none';
    
 }
-
-// //
-
-// function getRouteRequest(){
-
-//   // let data = {
-//   //   iniX : document.getElementById('iniX').value,
-//   //   iniY : document.getElementById('iniY') ,
-//   //   finX : document.getElementById('finX'),
-//   //   finY : document.getElementById('finY'),
-//   //   route : document.getElementById('route'),
-//   //   intRoute : document.getElementById('intRoute'),
-//   //   middle :document.getElementById('moddle')
-
-//   // };
-//   // let route = routeRequest(data.iniX,data.iniY,data.finX,data.finY,data.route,data.intRoute,data.middle);
-  
-    
-//     let ob = null;
-
-//     let xmlRe = $.parseXML(xml);
-//     let chil = xmlRe.getElementsByTagName('DirectoryResponse')[0].children;
-//     let array = new Array();
-//     var layer = CreateLayer("nuevo");
-//     for (let index = 0; index < chil.length; index++) {
-//       const element = chil[index];
-//       let pos = element.children[0].children[2].children[0].innerHTML;     
-//       ob = {
-//         long : getLongitud(pos),
-//         lat : getLatitud(pos)
-//       } 
-//       var feature = CreateObject(layer,ob.long,ob.lat,null);
-//       let arr = new Array();
-//       arr[0] = ob.long;
-//       arr[1] = ob.lat;
-//       ZoomToCoordinates(arr,18);
-//     }
-//     //createObjetFromList(array);
-
-// }
 
 function getLongitud(coords){
   
@@ -241,7 +211,8 @@ function sendModalDirectProximity(){
     let element = document.getElementById('directoryProxCercanoA').value;
     
     if(element != null || initPoint != 0){
-        directoryRequest(selectedMode,initPoint);
+        
+        directoryRequest(selectedMode,initPoint,null);
     }else{
         alert('Debe llenar Cercano A o establecer un punto')
     }
@@ -249,7 +220,7 @@ function sendModalDirectProximity(){
 }
 
 
-function directoryRequest(modeAux,coord){
+function directoryRequest(modeAux,coord,param){
    
   let result = null;
   let name = "";
@@ -270,6 +241,7 @@ function directoryRequest(modeAux,coord){
     mode = modeAux;
      name = document.getElementById('directoryDistPlace').value;
      long = document.getElementById('directoryProxMaxDistanse').value;
+     requestNumber = 30;
      if(long == ''){
         long = 100;
      }
@@ -293,11 +265,17 @@ function directoryRequest(modeAux,coord){
         close = document.getElementById('directoryProxCercanoA').value;
     }
   }else if(modeAux == 'Basic'){
-    name = document.getElementById('directorySearch').value;
-    requestNumber = document.getElementById('directoryMaxResponse').value;
+      
+        name = document.getElementById('directorySearch').value;
+        requestNumber = document.getElementById('directoryMaxResponse').value;
+    
     if(requestNumber == ''){
         requestNumber = 5;
     }
+  }
+
+  if(param != null){
+      name = param;
   }
   
   let poiProperty='<POIProperties>';
@@ -337,6 +315,33 @@ function directoryRequest(modeAux,coord){
             '<MaximumDistance value="'+long+'"/></WithinDistance>\n'+
             '</POILocation>';
     }
+    if(close != "" && mode == 'Distance'){
+        poiLocation = '<POILocation>'+
+        '<WithinDistance>'+
+            '<POI>'+
+                '<POIAttributeList>'+
+                    '<POIInfoList>'+
+                        '<POIInfo name="Keyword" value="'+close+'"/>'+
+                    '</POIInfoList>'+
+                '</POIAttributeList>'+
+            '</POI>'+
+        '<MaximumDistance value="'+long+'"/>'+
+        '</WithinDistance>'+
+    '</POILocation>';
+    }else
+    if(close != "" && mode == 'Proximity'){
+        poiLocation = '<POILocation>'+
+        '<Nearest>'+
+        '<POI>'+
+        '<POIAttributeList>'+
+        '<POIInfoList>'+
+        '<POIInfo name="Keyword" value="'+close+'"/>'+
+        '</POIInfoList>'+
+        '</POIAttributeList>'+
+        '</POI>'+
+        '</Nearest>'+
+        '</POILocation>';
+    }
 
     let body = poiLocation+poiProperty;
 
@@ -346,71 +351,19 @@ function directoryRequest(modeAux,coord){
         '<DirectoryRequest distanceUnit="M">\n'+body+' '+
         '</DirectoryRequest>\n' +
         '</Request>\n' +
-        '</XLS>';
-
-    let xmlCloseOption = '<?xml version="1.0" encoding="utf-8"?>'+
-    '<XLS version="1.2" n1:lang="en-US" xmlns:n1="http://www.opengis.net/xls" xmlns="http://www.opengis.net/xls">'+
-    '<RequestHeader clientName="" clientPassword=""/>'+
-    '<Request maximumResponses="'+requestNumber+'" methodName="DirectoryService" requestID="" version="1.2">'+
-    '<DirectoryRequest>'+
-    '<POILocation>'+
-    '<WithinDistance>'+
-    '<POI>'+
-    '<POIAttributeList>'+
-    '<POIInfoList>'+
-    '<POIInfo name="Keyword" value="'+close+'"/>'+
-    '</POIInfoList>'+
-    '</POIAttributeList>'+
-    '</POI>'+
-    '<MaximumDistance value="'+long+'"/>'+
-    '</WithinDistance>'+
-    '</POILocation>'+
-    '<POIProperties>'+
-    '<POIProperty name="Keyword" value="'+name+'"/>'+
-    '</POIProperties>'+
-    '</DirectoryRequest>'+
-    '</Request>'+
-    '</XLS>';
-
-    let xmlProxyOption = '<?xml version="1.0" encoding="utf-8"?>'+
-    '<XLS version="1.2" n1:lang="en-US" xmlns:n1="http://www.opengis.net/xls" xmlns="http://www.opengis.net/xls">'+
-    '<RequestHeader clientName="" clientPassword=""/>'+
-    '<Request maximumResponses="'+requestNumber+'" methodName="DirectoryService" requestID="" version="1.2">'+
-    '<DirectoryRequest>'+
-    '<POILocation>'+
-    '<Nearest>'+
-    '<POI>'+
-    '<POIAttributeList>'+
-    '<POIInfoList>'+
-    '<POIInfo name="Keyword" value="'+close+'"/>'+
-    '</POIInfoList>'+
-    '</POIAttributeList>'+
-    '</POI>'+
-    '</Nearest>'+
-    '</POILocation>'+
-    '<POIProperties>'+
-    '<POIProperty name="Keyword" value="'+name+'"/>'+
-    '</POIProperties>'+
-    '</DirectoryRequest>'+
-    '</Request>'+
-    '</XLS>';
-
-    
+        '</XLS>';   
   
     let req = new XMLHttpRequest();
     req.open('POST','http://192.168.137.1/webSite/OpenLSServer.aspx',true);
-    req.onload = function(){
-        
-        processXmlDirectory(req.responseXML);
+    req.onload = function(){ 
+        if(param == null){      
+            processXmlDirectory(req.responseXML,false);
+        }else{
+            processXmlDirectory (req.responseXML,true);
+        }
     }
-    if(close != "" && selectedMode == 'Proximity'){
-        req.send(xmlProxyOption);
-    }else{
-        if(close != "" && selectedMode == 'Distance'){
-            req.send(xmlCloseOption);
-        }else
-            req.send(xml);
-    }
+    
+    req.send(xml);
     
 
 }
@@ -423,10 +376,10 @@ function drawPoint(layer,long,lat,attributes){
         else
          feature = CreateObject(layer,long,lat,null);
 
-    SetIconStyle(feature, 'assets/imgs/pointer.png', 1, 0.5, 1, 1);
-
-    
-    
+    if(initPoint == 0)
+        SetIconStyle(feature, 'assets/imgs/pointer4.png', 1, 0.5, 1, 1); 
+    else
+        SetIconStyle(feature, 'assets/imgs/pointer.png', 1, 0.5, 1, 1);
     
 }
 
@@ -465,15 +418,42 @@ function drawLineString(lineString){
 
 function processXmlRoute(xml){ 
     let distance = xml.getElementsByTagName('TotalDistance')[0].attributes[0].value;
-    
-    alert(distance);
-
+    document.getElementById('labelDistance').innerHTML = 'Distancia : '+distance;
+    document.getElementById('labelDistance').style.display='block';
     let lineString = xml.getElementsByTagName('LineString')[0].children[0].innerHTML;
     console.log(lineString);
-    drawLineString(lineString);   
+    drawLineString(lineString); 
+      
 }
 
-function processXmlDirectory(xml){
+function drawRoute(){
+    let init = document.getElementById('ruteInitialPoint').value;
+    let fin = document.getElementById('ruteFinalPoint').value;
+
+    if(init != '' && fin !=''){
+        directoryRequest('Info',null,init);
+        directoryRequest('Info',null,fin);
+        setTimeout(function(){
+            routeRequest();
+        },2000);
+    }else
+        if(fin != '' && initPoint !=0){
+            directoryRequest('Info',null,fin);
+            setTimeout(function(){
+                routeRequest();
+            },2000);
+        }else
+            if(init != '' && initPoint !=0){
+                directoryRequest('Info',null,init);
+                setTimeout(function(){
+                    routeRequest();
+                },2000);
+            }
+}
+
+
+
+function processXmlDirectory(xml,isForRoute){
    
     console.log(xml);
     if(xml.getElementsByTagName('ErrorList').length ==1){
@@ -482,7 +462,7 @@ function processXmlDirectory(xml){
     }else
     {
         let directoryResponse = xml.getElementsByTagName('DirectoryResponse')[0].children;
-        let layer = CreateLayer('Point');
+        
 
         for (let index = 0; index < directoryResponse.length; index++) {
             let arrAttrinbutes = new Array();
@@ -527,10 +507,27 @@ function processXmlDirectory(xml){
                             
                 ]);
 
-                let point = poiContent.children[0].children[2];
+            let point = poiContent.children[0].children[2];
             let pos = point.children[0].innerHTML;
-
-            drawPoint(layer,getLongitud(pos),getLatitud(pos),arrAttrinbutes);
+            
+            if(isForRoute == false)
+                drawPoint(layer,getLongitud(pos),getLatitud(pos),arrAttrinbutes);
+            else{
+                if(initPoint ==0){
+                    let coords = new Array();
+                    coords.push(getLongitud(pos));
+                    coords.push(getLatitud(pos));
+                    initPoint = coords;
+                    
+                }else{
+                    let coords = new Array();
+                    coords.push(getLongitud(pos));
+                    coords.push(getLatitud(pos));
+                    finalPoint = coords;
+                    console.log(finalPoint +'---'+initPoint);
+                }
+            }
+                
 
         }
     }
@@ -562,375 +559,6 @@ function coordinatesSlice(coordString){
         }
     }
     return arr;
-}
-
-
-
-// function routeRequest(iniX,iniY,finX,finY,route,intRoute,middle){
-//   let result = null;
-//   let data = JSON.stringify({
-//     iniX : iniX,
-//     iniY : iniY ,
-//     finX : finX,
-//     finY : finY,
-//     route : route,
-//     intRoute : intRoute,
-//     middle :middle
-
-//   });
-
-//   let headers = new HttpHeaders();
-//   headers.set('Content-Type','application/json');
-
-//   this.http.post('http://localhost:8888/Directory',data,{headers}).map(res=>res).subscribe(data=>{
-//     console.log(data);
-//     result = data;
-//   });
-
-//   return result;
-// }
-
-
-
-function drawBuildingsReport(json){
-    var fclassArray = ["Bueno","Regular","Malo"];
-    CretaePolygonsScaleColors(json,"Selected",fclassArray,"greenToRed");
-
-
-    DeleteLayerByName("POI");
-    getPoiAjax();
-
-}
-
-
-function drawBuildings(json){
-
-    CreatePolygonsJSON(json ,"Buildings");
-    //CretaePolygonsScaleColors(json,"Buildings");
-
-}
-
-
-function drawAreas(json){
-
-    CreatePolygonsJSON(json,"Areas");
-    //CreatePolygonsJSON(null,areas.SHAPE);
-
-}
-
-
-function drawStreet(json){
-
-    CreatePolygonsJSON(json,"Street");
-}
-
-
-function drawPoi(json){
-
-    CreatePolygonsJSON(json,"POI");
-}
-
-
-function getBuildingsAjax(){
-    //console.log('inicio paralelo proceso2    ' + new Date().getSeconds()+'  '+ new Date().getMilliseconds());
-    $.ajax({
-        url: "http://localhost:8888/BuildingsList",
-        success: function (response) {
-            drawBuildings(response);
-        },
-        error: function (xhr, status, error) {
-            alert("Error:  "+error);
-
-        }
-    });
-
-}
-
-
-function getAreasAjax(){
-    console.log('inicio paralelo proceso1    ' + new Date().getSeconds()+'  '+ new Date().getMilliseconds());
-    $.ajax({
-        url: "index.php?r=areas/getareas",
-
-        success: function (response) {
-            drawAreas(response);
-
-        },
-        error: function (xhr, status, error) {
-            alert("Error:  "+error);
-        }
-    });
-
-
-}
-
-
-function getPoiAjax(){
-    var layer = CreateLayer("POI");
-    $.ajax({
-        url: "?r=interestplaces/getpoi",
-        success: function (response) {
-
-            for (var i = 0;i<response.length;i++){
-                var values = [];
-                var shape = response[i].SHAPE;
-
-                var format = new ol.format.GeoJSON();
-                var jsonFeature = format.readFeature(shape);
-
-                var coordinates = jsonFeature.getGeometry().getCoordinates();
-
-
-
-                var long = coordinates[0];
-                var lat = coordinates[1];
-
-
-
-
-                var feature = CreateObject(layer,long,lat,null);
-
-                var key = "<b>Nombre</b>";
-                var value = response[i].name;
-                if(value == null){
-                    value = "No disponible";
-                }
-                feature.set(key,value);
-
-                key = "<b>Tipo</b>";
-                value  = response[i].fclass;
-
-                feature.set(key,value);
-
-                if(response[i].fclass == "Cafetería"){
-                    SetIconStyle(feature, '../', 1, 0.5, 1, 1);
-                }else if(response[i].fclass == "Teatro"){
-                    SetIconStyle(feature, 'images/icons poi/teatro.png', 1, 0.5, 1, 1);
-                }else if(response[i].fclass == "Restaurante"){
-                    SetIconStyle(feature, 'images/icons poi/restaurante1.png', 1, 0.5, 1, 1);
-                }else if(response[i].fclass == "Biblioteca"){
-                    SetIconStyle(feature, 'images/icons poi/biblioteca1.png', 1, 0.5, 1, 1);
-                }else if(response[i].fclass == "Enfermería"){
-                    SetIconStyle(feature, 'images/icons poi/enfermeria1.png', 1, 0.5, 1, 1);
-                }else if(response[i].fclass == "Monumento"){
-                    SetIconStyle(feature, 'images/icons poi/monumento1.png', 1, 0.5, 1, 1);
-                }else if(response[i].fclass == "Parada"){
-                    SetIconStyle(feature, 'images/icons poi/parada1.png', 1, 0.5, 1, 1);
-                }if(response[i].fclass == "ATM"){
-                    SetIconStyle(feature, 'images/icons poi/seguridad1.png', 1, 0.5, 1, 1);
-                }if(response[i].fclass == "Librería"){
-                    SetIconStyle(feature, 'images/icons poi/libreria1.png', 1, 0.5, 1, 1);
-                }if(response[i].fclass == "Restaurante"){
-                    SetIconStyle(feature, 'images/icons poi/restaurante1.png', 1, 0.5, 1, 1);
-                }else if(response[i].fclass == "Facultad"){
-
-                    if(response[i].name == "Facultad de Arquitectura"){
-                        SetIconStyle(feature, 'images/Facultades/Arquitectura.png', 1, 0.5, 1, 1);
-                    }else if(response[i].name == "Facultad de Ingeniería Mecánica"){
-                        SetIconStyle(feature, 'images/Facultades/mecanica.png', 1, 0.5, 1, 1);
-                    }else if(response[i].name == "Facultad de Ingeniería Eléctrica"){
-                        SetIconStyle(feature, 'images/Facultades/Electrica.png', 1, 0.5, 1, 1);
-                    }else if(response[i].name == "Facultad de Ingeniería Informatica"){
-                        SetIconStyle(feature, 'images/Facultades/Informatica.png', 1, 0.5, 1, 1);
-                    }else if(response[i].name == "Facultad de Ingeniería Industrial"){
-                        SetIconStyle(feature, 'images/Facultades/industrial.png', 1, 0.5, 1, 1);
-                    }else if(response[i].name == "Facultad de Ingeniería  Química"){
-                        SetIconStyle(feature, 'images/Facultades/quimica.png', 1, 0.5, 1, 1);
-                    }else if(response[i].name == "Facultad de Ingeniería Civil"){
-                        SetIconStyle(feature, 'images/Facultades/civil.png', 1, 0.5, 1, 1);
-                    }else if(response[i].name == "Facultad de Ingeniería en Telecomunicaciones y Electrónica"){
-                        SetIconStyle(feature, 'images/Facultades/no.png', 1, 0.5, 1, 1);
-                    }else if(response[i].name == "Facultad de Ingeniería Automática"){
-                        SetIconStyle(feature, 'images/Facultades/automatica.png', 1, 0.5, 1, 1);
-                    }
-                }
-
-            }
-        },
-        error: function (xhr, status, error) {
-            //alert("Error:  "+error);
-            $('#modalError1').modal('show');
-            $('#messageContent1').html('Disculpe a ocurrido un error de conneccion con la Base de Datos');
-        }
-    });
-
-}
-
-
-function getStreetAjax(){
-
-    $.ajax({
-        url: "index.php?r=street/getstreet",
-        success: function (response) {
-            drawStreet(response);
-        },
-        error: function (xhr, status, error) {
-            alert("Error:  "+error);
-        }
-    });
-
-}
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//Metodos para el dibujo de las figuras, luego de realizar una busqueda
-
-function drawSelectedBuilding(id){
-    $.ajax({
-        url: "index.php?r=building/getbuilding",
-        success: function (response) {
-
-            for (var i =0;i < response.length;i++){
-
-                if(response[i].OGR_FID == id){
-                    var json = response[i];
-                    CreatePolygonsJSONSelected(json,"Buildings","Red");
-                    DeleteLayerByName("POI");
-                    getPoiAjax();
-                }
-            }
-
-        },
-        error: function (xhr, status, error) {
-            alert("Error:  "+error);
-
-        }
-    });
-
-
-    $('#modal2').modal("hide");
-}
-
-
-function drawSelectedPOI(item){
-
-
-    $.ajax({
-        url: "?r=interestplaces/getpoi",
-        success: function (response) {
-
-            for (var i = 0; i<response.length;i++){
-                if(response[i].OGR_FID == item){
-                    var format = new ol.format.GeoJSON();
-                    var shape = response[i].SHAPE;
-
-                    var jsonFeature = format.readFeature(shape);
-                    var coordinates = jsonFeature.getGeometry().getCoordinates();
-                    ZoomToCoordinates(coordinates,19);
-                }
-            }
-
-        },
-        error: function (xhr, status, error) {
-            alert("Error:  "+error);
-        }
-    });
-
-    $('#modal3').modal("hide");
-}
-
-
-function drawSelectedArea(id){
-
-    $.ajax({
-        url: "index.php?r=areas/getareas",
-
-        success: function (response) {
-            for (var i =0;i < response.length;i++){
-
-                if(response[i].OGR_FID == id){
-                    var json = response[i];
-                    CreatePolygonsJSONSelected(json,"Areas","Red");
-                }
-            }
-
-        },
-        error: function (xhr, status, error) {
-            alert("Error:  "+error);
-        }
-    });
-
-    $('#modal4').modal("hide");
-}
-
-function drawSelectedWay(id){
-    $.ajax({
-        url: "index.php?r=way/getway",
-        success: function (response) {
-
-            for (var i =0;i < response.length;i++){
-
-                if(response[i].OGR_FID == id){
-                    var json = response[i];
-
-                   
-                    CreatePolygonsJSONSelected(json,"Rutas","Blue");
-                    
-                }
-            }
-
-        },
-        error: function (xhr, status, error) {
-            alert("Error:  "+error);
-
-        }
-    });
-}
-
-function drawSelectedProfessor(idFac){
-    var asdas = idFac;
-    $.ajax({
-        url: "?r=site/getbuildfacult",
-        data: {id_fac:idFac},
-        success: function (response) {
-
-                    CreatePolygonsJSONSelected(response,"Buildings","Red");
-            DeleteLayerByName("POI");
-            getPoiAjax();
-       },
-        error: function (xhr, status, error) {
-            alert("Error:  "+error);
-
-        }
-    });
-
-    $('#modal1').modal("hide");
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-/*
-function drawSelectedProfessor(id_fac) {
-
-    $.ajax({
-        method: 'get',
-        data: {id_fac: id_fac},
-        url: "index.php?r=site/getbuildfacult",
-        success: function (response) {
-            drawSelectedBuilding(response);
-        },
-        error: function (xhr, status, error) {
-            alert("Error:  " + error);
-
-        }
-    });
-$('#modal1').modal("hide");
-}
-*/
-//Reporte que dibuja los edificios por el color de la facultad
-function getBuildingAjaxReport(){
-    $.ajax({
-        url: "index.php?r=building/getbuilding",
-        success: function (response) {
-            drawBuildingsReport(response);
-        },
-        error: function (xhr, status, error) {
-            alert("Error:  "+error);
-        }
-    });
-
 }
 
 function getFacultyColor(faculty){
@@ -965,90 +593,6 @@ function getFacultyColor(faculty){
         }
     return result;
 }
-
-function reportColorFaculty(){
-    getFacultyByBuilding();
-    setTimeout(function(){
-        DeleteLayerByName("POI");
-        getPoiAjax();
-    },2000);
-
-}
-
-//Dibuja los edificios relacionados a una falcultad y les asigna un color definido
-function getFacultyByBuilding(){
-    var faculty = null;
-    var buildFac = null;
-    var buildings = null;
-    var colorArray = [];
-    var buildingsArray = [];
-
-   $.ajax({
-
-        url: "?r=building/getbuilding",
-        success: function (response) {
-
-           buildings = response;
-
-        },
-        error: function (xhr, status, error) {
-            alert("Error:  "+error);
-
-        }
-    });
-
-    $.ajax({
-
-        url: "?r=site/getfaculty",
-        success: function (response) {
-            faculty = response;
-
-        },
-        error: function (xhr, status, error) {
-            alert("Error:  "+error);
-
-        }
-    });
-
-    $.ajax({
-
-        url: "?r=site/getbuildingfacult",
-        success: function (response) {
-            buildFac = response;
-
-        },
-        error: function (xhr, status, error) {
-            alert("Error:  "+error);
-
-        }
-    });
-
-
-        setTimeout(function(){
-
-            for (var i = 0;i < buildings.length;i++){
-                var build = buildings[i];
-                for (var j = 0;j < buildFac.length;j++){
-                    if(build.OGR_FID == buildFac[j].id_Edificio){
-                        var idFacult = buildFac[j].id_Facultad;
-                        for (var k = 0;k < faculty.length;k++) {
-                            if(idFacult == faculty[k].id_facultad) {
-                                var facultName = faculty[k].nombre;
-                                var color = getFacultyColor(facultName);
-                                colorArray.push(color);
-                                buildingsArray.push(build);
-                            }
-                        }
-                    }
-                }
-
-            }
-            CreatePolygonsJSONOtherColorArray(buildingsArray,"Buildings",colorArray);
-
-        },2000);
-
-}
-
 
 //Muestra una lista de los edificios que contiene la base de datos
 function mostrarListaEdificio(){
@@ -1098,23 +642,168 @@ function mostrarListaEdificio(){
 }
 
 // Mustra una lista de los profesores que brinda el servicio web
-   function mostrarListaProfesor(){
-       var name = $('#nombreProfesor').val();
-       var lastname = $('#apellidosProfesor').val();
-       var email = $('#correo').val();
-       var facultyId = $('#facultad').val();
-       var scientificCategory = $('#Categoriacientifica').val();
-       var identification = $('#CarnetdeIdentidad').val();
-       var teachingCategory = $('#Categoriadocente').val();
-       var surname = "";
+//    function mostrarListaProfesor(){
+//        var name = $('#nombreProfesor').val();
+//        var lastname = $('#apellidosProfesor').val();
+//        var email = $('#correo').val();
+//        var facultyId = $('#facultad').val();
+//        var scientificCategory = $('#Categoriacientifica').val();
+//        var identification = $('#CarnetdeIdentidad').val();
+//        var teachingCategory = $('#Categoriadocente').val();
+//        var surname = "";
 
-       $.ajax({
-           url: '?r=site/writexmlprofessor',
-           method: 'get',
-           data: {email:email,facultyId:facultyId,identification:identification,lastname:lastname,name:name,scientificCategory:scientificCategory,surname:surname,teachingCategory:teachingCategory},
-           success: function (result) {
-               //console.log(result.sandy);
-               var xmlDoc = jQuery.parseXML(result);
+//        $.ajax({
+//            url: '?r=site/writexmlprofessor',
+//            method: 'get',
+//            data: {email:email,facultyId:facultyId,identification:identification,lastname:lastname,name:name,scientificCategory:scientificCategory,surname:surname,teachingCategory:teachingCategory},
+//            success: function (result) {
+//                var xmlDoc = jQuery.parseXML(result);
+//                var profesorCollection = xmlDoc.childNodes[0].childNodes[0].childNodes[0].childNodes;
+//                if(profesorCollection.length == 0)
+//                    alert("Disculpe no se encontraron profesores con esa caracteristca");
+//                 else{
+
+//                var professor ;
+//                var direccion ;
+//                var correo;
+//                var idFacult;
+//                var identificacion ;
+//                var apellidos ;
+//                var nombre;
+//                var telefono;
+//                var catCientifica ;
+//                var surname1;
+//                var catDocente;
+//                var area1 ;
+//                var user1;
+//                $('#esconderProf').html("<table id='tableProfessors' class='table-responsive'></table>");
+//                for (var i =0;i < profesorCollection.length;i++){
+//                    professor = profesorCollection[i];
+//                    if(profesorCollection[i].childNodes.length < 12 ){
+//                         direccion = professor.childNodes[0].textContent;
+//                         correo = "--";
+//                         idFacult = professor.childNodes[1].textContent;
+//                         identificacion = professor.childNodes[2].textContent;
+//                         apellidos = professor.childNodes[3].textContent;
+//                         nombre = professor.childNodes[4].textContent;
+//                         telefono = professor.childNodes[5].textContent;
+//                         catCientifica = professor.childNodes[6].textContent;
+//                         surname1 = professor.childNodes[7].textContent;
+//                         catDocente = professor.childNodes[8].textContent;
+//                         area1 = professor.childNodes[9].textContent;
+//                         user1 = professor.childNodes[10].textContent;
+//                    }else{
+//                     professor = profesorCollection[i];
+//                     direccion = professor.childNodes[0].textContent;
+//                     correo = slideString(professor.childNodes[1].textContent);
+//                     idFacult = professor.childNodes[2].textContent;
+//                     identificacion = professor.childNodes[3].textContent;
+//                     apellidos = professor.childNodes[4].textContent;
+//                     nombre = professor.childNodes[5].textContent;
+//                     telefono = professor.childNodes[6].textContent;
+//                     catCientifica = professor.childNodes[7].textContent;
+//                     surname1 = professor.childNodes[8].textContent;
+//                     catDocente = professor.childNodes[9].textContent;
+//                     area1 = professor.childNodes[10].textContent;
+//                     user1 = professor.childNodes[11].textContent;
+//                    }
+//                    if(catCientifica == ""){
+//                        catCientifica ="--";
+//                    }
+//                     var trueIdFacult = idVersionFaculty(idFacult,area1);
+//                     $('#esconderProf').append(' <a href="#" class="list-group-item">' + nombre + ' '+ apellidos +  '<image class="" src="images/eye.png"  style="color:#285e8e;float: right;margin-left: 8px;text-align: left" data-toggle="modal" data-target="#modalProf" onclick="viewMore('+identificacion+')"></image><image src="images/point.png"  style="color:#285e8e;float: right" onclick="drawSelectedProfessor('+trueIdFacult+')"></image></a> ');
+//                }
+//             }
+//            },
+//            error: function () {
+//                alert('Disculpe, no hay coneccion con el servidor');
+//            }
+//        });
+//        $('#esconderProf').show();
+
+//    }
+
+function getXmlProfessor()
+{
+    let email = document.getElementById("email").value;
+    let facultyId = document.getElementById("facultyId").value;
+    let identification = document.getElementById("identification").value;
+    let lastname = document.getElementById("lastName").value;
+    let name = document.getElementById("name").value;
+    let scientificCategory = document.getElementById("scientificCategory").value;
+    let surname = '';
+    let teachingCategory = '';
+
+    // let xml = '<?xml version="1.0" encoding="UTF-8"?>'+
+    // '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'+
+    // 'xmlns:xsd="http://www.w3.org/2001/XMLSchema"'+
+    // 'xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">'+
+    // '<soap:Body>'+
+    // '<searchProfessor xmlns="http://www.mes.edu.cu/sigenu/ws/remote/professor">'+
+    // '<criteria xmlns="">'+
+    // '<email>'+email+'</email>'+
+    // '<facultyId>'+facultyId+'</facultyId>'+
+    // '<identification>'+identification+'</identification>'+
+    // '<lastname>'+lastname+'</lastname>'+
+    // '<name>'+name+'</name>'+
+    // '<scientificCategory>'+scientificCategory+'</scientificCategory>'+
+    // '<surname>'+surname+'</surname>'+
+    // '<teachingCategory>'+teachingCategory+'</teachingCategory>'+
+    // '</criteria>'+
+    // '</searchProfessor>'+
+    // '</soap:Body>'+
+    // '</soap:Envelope>';
+
+    let xml = '<?xml version="1.0" encoding="utf-8"?>'+
+    '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">'+
+    '<soap:Body>'+
+    '<searchProfessor xmlns="http://www.mes.edu.cu/sigenu/ws/remote/professor">'+
+    '<criteria xmlns="">'+
+    '<email></email>'+
+    '<facultyId></facultyId>'+
+    '<identification></identification>'+
+    '<lastname></lastname>'+
+    '<name>Eduardo</name>'+
+    '<scientificCategory></scientificCategory>'+
+    '<surname></surname>'+
+    '<teachingCategory></teachingCategory>'+
+    '</criteria>'+
+    '</searchProfessor>'+
+    '</soap:Body>'+
+    '</soap:Envelope>'
+    console.log(xml);
+    
+    // let req = new XMLHttpRequest();
+    
+    // req.open('POST','http://10.8.1.8:8083/ProfessorService.asmx',true);
+    // req.setRequestHeader('Content-type','text/xml');
+    // req.onload = function(){     
+    //     processXmlProfessor(req.responseXML);
+    // }
+    // req.send(xml);
+
+    var settings = {
+        "async": true,
+        "crossDomain": true,
+        "url": "http://10.8.1.8:8083/ProfessorService.asmx",
+        "method": "POST",
+        "headers": {
+          "content-type": "text/xml",
+          "cache-control": "no-cache",
+          "postman-token": "1388adc5-8e06-9eee-4202-e856f17ee87b"
+        },
+        "data": "<?xml version=\"1.0\" encoding=\"utf-8\"?><soap:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"><soap:Body><searchProfessor xmlns=\"http://www.mes.edu.cu/sigenu/ws/remote/professor\"><criteria xmlns=\"\"><email></email><facultyId></facultyId><identification></identification><lastname></lastname><name>Eduardo</name><scientificCategory></scientificCategory><surname></surname><teachingCategory></teachingCategory></criteria></searchProfessor></soap:Body></soap:Envelope>"
+      }
+      
+      $.ajax(settings).done(function (response) {
+        
+        console.log(response);
+      });
+}
+
+function processXmlProfessor(xml)
+{
+    var xmlDoc = jQuery.parseXML(xml);
                var profesorCollection = xmlDoc.childNodes[0].childNodes[0].childNodes[0].childNodes;
                if(profesorCollection.length == 0)
                    alert("Disculpe no se encontraron profesores con esa caracteristca");
@@ -1133,7 +822,6 @@ function mostrarListaEdificio(){
                var catDocente;
                var area1 ;
                var user1;
-               $('#esconderProf').html("<table id='tableProfessors' class='table-responsive'></table>");
                for (var i =0;i < profesorCollection.length;i++){
                    professor = profesorCollection[i];
                    if(profesorCollection[i].childNodes.length < 12 ){
@@ -1167,28 +855,42 @@ function mostrarListaEdificio(){
                    if(catCientifica == ""){
                        catCientifica ="--";
                    }
-                    var trueIdFacult = idVersionFaculty(idFacult,area1);
-                  // $('#tableProfessors').append('<tr ><td>'+direccion+'</td><td>'+correo+'</td><td>'+idFacult+'</td><td>'+identificacion+'</td><td>'+apellidos+'</td><td>'+nombre+'</td><td>'+telefono+'</td><td>'+catCientifica+'</td><td>'+surname1+'</td><td>'+catDocente+'</td><td>'+area1+'</td><td>'+user1+'</td></tr>');
-                   $('#esconderProf').append(' <a href="#" class="list-group-item">' + nombre + ' '+ apellidos +  '<image class="" src="images/eye.png"  style="color:#285e8e;float: right;margin-left: 8px;text-align: left" data-toggle="modal" data-target="#modalProf" onclick="viewMore('+identificacion+')"></image><image src="images/point.png"  style="color:#285e8e;float: right" onclick="drawSelectedProfessor('+trueIdFacult+')"></image></a> ');
-               }
-            //var colection = xmlDoc.evaluate("/soap/soap/professorCollection/professors[1]/email",xmlDoc,null,XPathResult.ANY_TYPE,null).textContent;
+                   $('#professorList').append('<ion-card>'+
 
-             /* console.log(result[0]);
-               for(var i = 0;i < result.length;i++){
-                   var nombre = result[i].nombre;
-                   var apellidos = result[i].apellidos;
-                   var facultad = result[i].id_Facultad;
-                   $('#esconderProf').append(' <a href="#" class="list-group-item" onclick="drawSelectedProfessor('+facultad+')">' + nombre + ' '+ apellidos + '</a>');
-               }*/
-               }
-           },
-           error: function () {
-               alert('Disculpe, no hay coneccion con el servidor');
-           }
-       });
-       $('#esconderProf').show();
+                   '<img src="../../assets/imgs/avatar.png">'+
+                   '<ion-fab center right top>'+
+                     '<button ion-fab onclick="locateProfessor('+area1+')">'+
+                       '<ion-icon name="pin"></ion-icon>'+
+                     '</button>'+
+                   '</ion-fab>'+
+                 
+                   '<ion-item>'+
+                     '<label item-left>Nombre:</label>'+
+                     '<p item-left>'+nombre+'</p>'+
+                   '</ion-item>'+
+                 
+                   '<ion-item>'+
+                     '<label item-left>Facultad:</label>'+
+                     '<p item-left>'+idFacult+'</p>'+
+                   '</ion-item>'+
+                 
+                   '<ion-item>'+
+                   '<label item-left>Categoría Científica:</label>'+
+                   '<p item-left>'+catCientifica+'</p>'+
+                 '</ion-item>'+
+           
+                 '<ion-item>'+
+                   '<label item-left>Categoría Docente:</label>'+
+                   '<p item-left>'+catDocente+'</p>'+
+                 '</ion-item>'+
+                '</ion-card>')
+                }
+            }
+        }
 
-   }
+function locateProfessor(area){
+    directoryRequest(null,null,area);
+}
 
 //Divide un String siempre que contenga una coma
 function slideString(correo){
@@ -1205,131 +907,6 @@ function slideString(correo){
     }
 
     return correo1;
-}
-
-//Mustra una lista de los puntos de interes que se encuentren en la base de datos
-function mostrarListaPOI(){
-
-       var nombre = $('#nombrePOI').val();
-       var tipo = $('#TipoPoi').val();
-    var first = false;
-       $.ajax({
-           url: '?r=interestplaces/modallocpoi',
-           method: 'get',
-           data: {nombre: nombre, tipo: tipo},
-           success: function (result) {
-              // alert('Bien!!!!!');
-              // console.log(result[0]);
-               for(var i = 0;i < result.length;i++){
-                   var nombre2 = result[i].name;
-                   if(nombre2 == null){
-                       nombre2 = "No disponible";
-                   }
-                   //var tipo1 = result[i].fclass;
-
-                   var id = result[i].OGR_FID;
-                   if(first == false){
-                       $('#esconderPOI').html(' <a href="#" class="list-group-item" onclick=drawSelectedPOI('+id+')>' + nombre2 + '</a>');
-                       first = true;
-                   }else
-                       $('#esconderPOI').append(' <a href="#" class="list-group-item" onclick=drawSelectedPOI('+id+')>' + nombre2 + '</a>');
-               }
-
-
-           },
-           error: function () {
-               alert('Error: ');
-           }
-       });
-       $('#esconderPOI').show();
-
-
-   }
-
-//Muestra una lista de las areas que se encuentren en la base de datos
-   function mostrarListaAreas(){
-       var nombre = $('#nombreArea').val();
-       var tipo = $('#tipoArea').val();
-       var first = false;
-       $.ajax({
-           url: '?r=areas/modallocarea',
-           method: 'get',
-           data: {nombre: nombre, tipo: tipo},
-           success: function (result) {
-
-               if(result == "No se encontraron elementos"){
-                   alert("No existen coincidencias");
-               }else{
-              // alert('Bien!!!!!');
-               //console.log(result[0]);
-               for(var i = 0;i < result.length;i++){
-                   var nombre = result[i].name;
-                   var id = result[i].OGR_FID;
-                 //  var shape =  result[i].SHAPE;
-                   if(first == false){
-                       $('#esconderArea').html(' <a href="#" class="list-group-item" onclick=drawSelectedArea('+id+')>'+ nombre +'</a>');
-                       first = true;
-                   }else
-                       $('#esconderArea').append(' <a href="#" class="list-group-item" onclick=drawSelectedArea('+id+')>'+ nombre +'</a>');
-                    }
-               }
-           },
-           error: function () {
-               alert('Error: ');
-           }
-       });
-       $('#esconderArea').show();
-
-   }
-/*
-   function getXmlProfessor(email,facultyId,identification,lastname,name,scientificCategory,surname,teachingCategory){
-       var email = email;
-       var facultyId = facultyId;
-       var identification = identification;
-       var lastname = lastname;
-       var name= name ;
-       var scientificCategory = scientificCategory;
-       var surname = surname;
-       var teachingCategory = teachingCategory;
-
-       $.ajax({
-           url: '?r=site/writexmlprofessor',
-           method: 'GET',
-           data: {email:email,facultyId:facultyId,identification:identification,lastname:lastname,name:name,scientificCategory:scientificCategory,surname:surname,teachingCategory:teachingCategory},
-
-           success: function (result) {
-               //Ya
-               alert("ya funciona mira consola");
-               console.log(result);
-
-               //sendXml(result);
-           },
-           error: function () {
-               alert('Error: No hay conexion con el servicio de Profesores');
-           }
-       });
-
-   }
-*/
-
-function CretaePolygonsReport(jsonObjectArray,type){
-
-    var initial = CreateLayer('FacultyReport');
-    // Parámetros de entrada
-    //Scale = 0.5;
-    //OffsetHor = 0.5;
-    //OffsetVert = 0.5;
-    //Opacity = 0.8;
-
-    for (var i = 0;i < jsonObjectArray.length;i++){
-        var json = jsonObjectArray[i];
-        var SHAPE = json.SHAPE;
-        var id_Build = json.OGR_FID;
-        var faculty = getFacultyByBuilding(id_Build);
-        var valuesA = getValues(type,json);
-
-        jsonFeature = CreateObjectFromJSONColorReport(initial, SHAPE,valuesA,faculty);
-    }
 }
 
 //Muestra informacion adicional de los profesores listados
@@ -1436,38 +1013,10 @@ function viewMore(identificacionSelected){
 
 }
 
-function getFacultyModal(id){
-    var result = null;
-    var find = false;
-    $.ajax({
-        url: "?r=site/getfaculty",
-        success: function (response) {
-                var fac = response;
-                for (var i = 0; i < fac.length && find == false;i++){
-                    if(fac[i].id_facultad == id){
-                        result = fac[i].nombre;
-                        $("#listProperties").append('<br><br><p href="#" style="text-align: left;">Facultad : ' + result +  '</p> ');
-                        find = true;
-                    }else
-                        result = id;
-                }
-
-
-           // return result;
-        },
-        error: function (xhr, status, error) {
-            alert("Error:  "+error);
-        }
-    });
-
-
-}
-
 function renderScreen(){
     var height = $(window).height();
     $("#body").height(height);
-    //if(height > 600)
-        //$(".ol-zoomslider").style('top:'+ height/2);
+    
 }
 
 
@@ -1751,7 +1300,24 @@ function getInfoFromJson(response){
     info = '<h5>Nombre</h5><p>'+actual.name+'</p>';
     info += '<h5>Tipo</h5><p>'+actual.fclass+'</p>';
   }
-  return info;
+
+  document.getElementById('divInfoPopupId').style.display = 'block';
+    var content = document.getElementById('infoPopup');
+	content.innerHTML = info;
+                        
+ 
+}
+
+function getInfoFromFeature(feature){
+    var props = feature.getProperties();
+    var info = '';
+    for (i = 0; i < Object.keys(props).length ; i++)
+    if (typeof (props[Object.keys(props)[i]]) != 'object' )
+        info += "<p>" + Object.keys(props)[i]+ ': '+ props[Object.keys(props)[i]] + "</p>";
+
+        document.getElementById('divInfoPopupId').style.display = 'block';
+        var content = document.getElementById('infoPopup');
+        content.innerHTML = info;
 }
 
 // function mandarXML(){

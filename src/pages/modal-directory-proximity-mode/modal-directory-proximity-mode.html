@@ -1,0 +1,69 @@
+<!--
+  Generated template for the ModalDirectoryProximityModePage page.
+
+  See http://ionicframework.com/docs/components/#navigation for more info on
+  Ionic pages and navigation.
+-->
+<ion-header>
+
+    <ion-buttons start>  
+               
+        <!-- <button  ion-fab mini><ion-icon name="home"></ion-icon></button>          
+        <button  ion-fab mini (click)="openModalRoute()" onclick="setCoordinatesMode()"><ion-icon name="home"></ion-icon></button> -->
+        <p>
+        <button ion-button color="light" (click)="openModalDirectory()" icon-only>
+          <ion-icon name="map"></ion-icon>
+        </button>
+        
+
+          <button ion-button color="light" (click)="openModalDirectoryDistanceMode()" onclick="setModalSelectedDirectDistance()" icon-only>
+              <ion-icon name="map"></ion-icon>
+            </button>
+
+            <button ion-button color="light"  icon-only>
+                <ion-icon name="map"></ion-icon>
+              </button>
+              
+              <button ion-button color="light" (click)="closeModal()" onclick="setInfoMode()" style="float: right;" ><ion-icon name="close"></ion-icon></button>
+       
+      </p>
+    <!-- <button (click)="closeModal()" icon-only class="closeButtom"> -->
+        
+          
+          
+      <!-- <ion-icon name="close"></ion-icon>
+    </button> -->
+  </ion-buttons>
+
+</ion-header>
+
+
+<ion-content padding>
+    <ion-title>Directorio Proximidad</ion-title>
+    
+  <ion-list>   
+    <input id="directoryProxPlace" type="text" class="form-control" placeholder="Buscar">
+    <input id="directoryProxMaxFind" type="text" class="form-control" placeholder="Catidad de respuestas cercanas">
+    
+    
+      <ion-item>
+        <ion-label>Modo</ion-label>
+        <ion-select>
+          <ion-option value="coord" (click)="showCoordinate()" >Coordenadas</ion-option>
+          <ion-option value="close" (click)="showClose()">Cercano a</ion-option> 
+        </ion-select>
+      </ion-item>
+    
+
+    <input id="directoryProxCercanoA" type="text" class="form-control" style="display: none;" placeholder="Cercano a">
+  </ion-list>
+    
+        <label id="coordinateLabel" style="float:left;font-size: 1.8rem;margin: 8px;color: #404040" style="display: none;">Seleccione punto: </label>
+      <button id="moreClose" ion-fab mini  onclick="setModalSelectedDirectProximity()" style="display: none;"><ion-icon name="pin"></ion-icon></button>
+    
+    
+    <button ion-fab mini  onclick="sendModalDirectProximity()"><ion-icon name="send"></ion-icon></button>
+
+
+   
+</ion-content>

@@ -1,13 +1,39 @@
-<ion-header>
-  <ion-navbar>
-    <ion-title>Mapa</ion-title>
-  </ion-navbar>
-</ion-header>
 
-<ion-content padding>
-    <body onload="MapInit()">
-        <div id="olmap" >
-        </div>  
-      </body>
+
+
+<ion-content padding >
+  
+  <ion-fab middle left edge>
+    <button ion-fab mini onclick="geoloctionFunction()" ><ion-icon name="locate"></ion-icon></button>
+  </ion-fab>
+    <ion-fab middle right edge style="top: 40%;">
+      <button ion-fab mini onclick="setInfoMode()" (click)="openModal()"><ion-icon name="search"></ion-icon></button>
+      <button ion-fab mini onclick="clearPoints()" ><ion-icon name="trash"></ion-icon></button>
+      <button id="coordBoutomId" ion-fab mini onclick="setModalSelectedRoute()" class="changeColor"><ion-icon name="analytics"></ion-icon></button>
       
+      
+      
+    
+    </ion-fab>
+  <body onload='MapInit()'>
+    <div id="olmap" style="z-index: 2;">
+    </div>
+    
+  </body>
+  
 </ion-content>
+<div id="divInfoPopupId" class="divInfoPopup">
+    <button ion-button (click)="closePopupInfo()" color="light"  style="float: right;height: 2.4rem;width: 1rem;border: none;box-shadow: none;background: transparent;">   
+    <ion-icon name="close"></ion-icon></button>
+       
+  <div id="infoPopup">
+
+  </div>
+</div>
+<div id="labelDistance" class="divInfoEnd" >
+</div>
+<div class="divInfoTop" hidden>
+
+  
+
+</div>

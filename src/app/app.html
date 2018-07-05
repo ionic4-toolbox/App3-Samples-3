@@ -1,1 +1,6 @@
-<ion-nav [root]="rootPage"></ion-nav>
+<ion-menu [content]="Content">
+<ion-content>
+<h2>Here</h2>
+</ion-content>
+</ion-menu>
+<ion-nav [root]="rootPage" #content swipeBackEnabled="false"></ion-nav>

@@ -17,7 +17,7 @@ function functionInitLayer(){
 function setCoordinateGPS(gps){
     this.coordinateGPS = gps;
 }
-
+//Funcion para cambiar el modo que esta activo (coordenadas o informacion)
 function setModalSelectedRoute(){
     if(isCoordinateActive == false){
         selectedMode = 'Route';
@@ -37,20 +37,19 @@ function setModalSelectedRoute(){
 function setModalSelectedDirectDistance(){
     
     selectedMode = 'Distance';
-    setCoordinatesMode();
+    
 }
 
 function setModalSelectedDirectProximity(){
     selectedMode = 'Proximity';
-    setCoordinatesMode()
+    
 }
-
-function insetCoords(coord){
-    
-    
+//Funcion para insercion de coordenadas y trazado de rutas
+function insetCoords(coord){ 
+    //insercion de datos en variable global InitPoint  
     if(initPoint == 0){
         initPoint = coord;
-        console.log(initPoint);
+        //console.log(initPoint);
         if(selectedMode == 'Route'){
             // document.getElementById('ruteInitialPoint').value = initPoint;
             drawPoint(layer,initPoint[0],initPoint[1],null);
@@ -145,7 +144,7 @@ function getLatitud(coords){
     
     return lat;
 }
-
+//Funcion para trazar rutas conformando un XML de envio
 function routeRequest(){
 
     let iniX = initPoint[0];
@@ -156,6 +155,7 @@ function routeRequest(){
     let intRoute = ""; 
     let middle = "";
 
+    //Seccion de XML para agregar puntos intermedios en la ruta
     if(intRoute != "") {
         for (var value in intRoute) {
 
@@ -170,6 +170,7 @@ function routeRequest(){
 
     }
 
+    //Conformacion general del XML
     let xml = '<?xml version="1.0" encoding="utf-8"?> ' +
     '<XLS version="1.2" n1:lang="en-US" xmlns:n1="http://www.opengis.net/xls" xmlns="http://www.opengis.net/xls"> ' +
         '<RequestHeader />' +
@@ -196,11 +197,10 @@ function routeRequest(){
                 '</DetermineRouteRequest>' +
             '</Request>' +
     '</XLS>';
-    let xmlw = $.parseXML(xml);
+    //Envio de XML a servio
     let req = new XMLHttpRequest();
     req.open('POST','http://192.168.137.1/webSite/OpenLSServer.aspx',true);
-    req.onload = function(){
-       
+    req.onload = function(){      
         processXmlRoute(req.responseXML);
     }
     req.send(xml);
@@ -236,14 +236,14 @@ function directoryRequest(modeAux,coord,param){
   let phone = "";
   let close = "";
   
-
+// Condiciones para capturar datos en la vista
   if(modeAux == 'Distance'){
     mode = modeAux;
      name = document.getElementById('directoryDistPlace').value;
      long = document.getElementById('directoryProxMaxDistanse').value;
      requestNumber = 30;
      if(long == ''){
-        long = 100;
+        long = 500;
      }
      if(coord != 0){
         longitud = coord[0];
@@ -273,11 +273,13 @@ function directoryRequest(modeAux,coord,param){
         requestNumber = 5;
     }
   }
-
-  if(param != null){
+// Fin de condiciones para capturar datos en la vista
+  
+if(param != null){
       name = param;
   }
   
+  //Inicio de conformacion de XML para enviar, etiquetas de propiedad
   let poiProperty='<POIProperties>';
 
     if(category != '')
@@ -295,7 +297,7 @@ function directoryRequest(modeAux,coord,param){
     poiProperty += '</POIProperties>';
 
     let poiLocation ='';
-
+//Anadir etiquetas a XML segun el modo
     if(mode=='Proximity'){
         poiLocation = '<POILocation>\n'+
             '<Nearest>\n'+
@@ -314,7 +316,7 @@ function directoryRequest(modeAux,coord,param){
             '</Position>\n'+
             '<MaximumDistance value="'+long+'"/></WithinDistance>\n'+
             '</POILocation>';
-    }
+    }//Anadir etiquetas a XML segun el modo y si inserto un lugar cercano
     if(close != "" && mode == 'Distance'){
         poiLocation = '<POILocation>'+
         '<WithinDistance>'+
@@ -344,7 +346,7 @@ function directoryRequest(modeAux,coord,param){
     }
 
     let body = poiLocation+poiProperty;
-
+//Construccion general del XML
     let xml = '<?xml version="1.0" encoding="UTF-8"?>\n'+
         '<XLS xmlns="http://www.opengis.net/xls" version="1.2"><RequestHeader/>\n'+
         '<Request maximumResponses="'+requestNumber+'" methodName="DirectoryService" requestID="" version="1.2">\n' +
@@ -352,7 +354,7 @@ function directoryRequest(modeAux,coord,param){
         '</DirectoryRequest>\n' +
         '</Request>\n' +
         '</XLS>';   
-  
+//Enviar XML a servicio
     let req = new XMLHttpRequest();
     req.open('POST','http://192.168.137.1/webSite/OpenLSServer.aspx',true);
     req.onload = function(){ 
@@ -383,18 +385,19 @@ function drawPoint(layer,long,lat,attributes){
     
 }
 
-
+//Funcion para dibujar ruta
 function drawLineString(lineString){
 
-    console.log('String de coordenadas'+lineString);
+    //console.log('String de coordenadas'+lineString);
 
     var layer = CreateLayer('Ruta');   
     var coord = coordinatesSlice(lineString);
-    console.log('arreglo del string de coordenadas'+coord);
+    //console.log('arreglo del string de coordenadas'+coord);
     let short = new Array();
     let zise = coord.length;
     
     let count =0;
+    //proseso de dibujo de ruta de dos en dos
     while(count < zise){
         if(count == zise-1){
         short.push(coord[count-1]);
@@ -415,13 +418,13 @@ function drawLineString(lineString){
    
 }
 
-
+//Funcion para procesar los datos del XML de respuesta para Ruta
 function processXmlRoute(xml){ 
     let distance = xml.getElementsByTagName('TotalDistance')[0].attributes[0].value;
     document.getElementById('labelDistance').innerHTML = 'Distancia : '+distance;
     document.getElementById('labelDistance').style.display='block';
     let lineString = xml.getElementsByTagName('LineString')[0].children[0].innerHTML;
-    console.log(lineString);
+    //console.log(lineString);
     drawLineString(lineString); 
       
 }
@@ -452,19 +455,21 @@ function drawRoute(){
 }
 
 
-
+//Funcion para procesar el XML de respuesta en Directorio
 function processXmlDirectory(xml,isForRoute){
    
-    console.log(xml);
+    //console.log(xml);
     if(xml.getElementsByTagName('ErrorList').length ==1){
         console.log(xml.getElementsByTagName('ErrorList'));
         alert('No se encontraron elementos');
     }else
     {
+        //Almacena un arreglo de las respuestas especificas del XML
         let directoryResponse = xml.getElementsByTagName('DirectoryResponse')[0].children;
         
 
         for (let index = 0; index < directoryResponse.length; index++) {
+            //Obtencion de parametros
             let arrAttrinbutes = new Array();
             let poiContent = directoryResponse[index];
             let name = poiContent.children[0].attributes[0].nodeValue;
@@ -474,10 +479,9 @@ function processXmlDirectory(xml,isForRoute){
             let freeFormAdrees = address.children[0].innerHTML;
             let postalCode = address.children[1].innerHTML;
             let distance = "";
-            if(selectedMode == "Distance" || selectedMode == "Proximity"){
+            //Seccion para insertar propiedades que se visualizaran
+            if(selectedMode == "Distance" || selectedMode == "Proximity"){ 
                 distance = directoryResponse[index].getElementsByTagName('Distance')[0].attributes[0].nodeValue;
-            } 
-            if(selectedMode == "Distance" || selectedMode == "Proximity")  
                 arrAttrinbutes.push([{
                         key: 'Nombre',
                         value: name
@@ -492,7 +496,7 @@ function processXmlDirectory(xml,isForRoute){
                         value:distance
                     }
                             
-                ]);
+                ]);}
                 else
                     arrAttrinbutes.push([{
                         key: 'Nombre',
@@ -506,13 +510,13 @@ function processXmlDirectory(xml,isForRoute){
                     }
                             
                 ]);
-
+            //Obtener posicion de el objeto
             let point = poiContent.children[0].children[2];
             let pos = point.children[0].innerHTML;
-            
+            //validaciones para iniciar punto de inicio y punto de fin
             if(isForRoute == false)
                 drawPoint(layer,getLongitud(pos),getLatitud(pos),arrAttrinbutes);
-            else{
+            else{ 
                 if(initPoint ==0){
                     let coords = new Array();
                     coords.push(getLongitud(pos));
@@ -524,7 +528,7 @@ function processXmlDirectory(xml,isForRoute){
                     coords.push(getLongitud(pos));
                     coords.push(getLatitud(pos));
                     finalPoint = coords;
-                    console.log(finalPoint +'---'+initPoint);
+                    
                 }
             }
                 
@@ -533,7 +537,7 @@ function processXmlDirectory(xml,isForRoute){
     }
 }
 
-
+//Convertir String de puntos en Arreglo de puntos
 function coordinatesSlice(coordString){
     let arr = new Array();
     let arrLocal = new Array();
@@ -734,6 +738,97 @@ function getXmlProfessor()
     let surname = '';
     let teachingCategory = '';
 
+    $.ajax({
+        url: 'http://10.9.5.52/sigcujae/web/index.php?r=site/writexmlprofessor',
+        //method: 'get',
+        data: {email:email,facultyId:facultyId,identification:identification,
+            lastname:lastname,name:name,scientificCategory:scientificCategory,
+            surname:surname,teachingCategory:teachingCategory},
+        
+        success: function (result) {
+            //console.log(result.sandy);
+            let xmlTestProcess = processXmlProfessor(result);
+            console.log(result);
+            var xmlDoc = $.parseXML(xmlTestProcess);
+            var profesorCollection = xmlDoc.childNodes[0].childNodes[0].childNodes[0].childNodes;
+            if(profesorCollection.length == 0)
+                alert("Disculpe no se encontraron profesores con esa caracteristca");
+             else{
+
+            var professor ;
+            var direccion ;
+            var correo;
+            var idFacult;
+            var identificacion ;
+            var apellidos ;
+            var nombre;
+            var telefono;
+            var catCientifica ;
+            var surname1;
+            var catDocente;
+            var area1 ;
+            var user1;
+            $('#esconderProf').html("<table id='tableProfessors' class='table-responsive'></table>");
+            for (var i =0;i < profesorCollection.length;i++){
+                professor = profesorCollection[i];
+                if(profesorCollection[i].childNodes.length < 12 ){
+                     direccion = professor.childNodes[0].textContent;
+                     correo = "--";
+                     idFacult = professor.childNodes[1].textContent;
+                     identificacion = professor.childNodes[2].textContent;
+                     apellidos = professor.childNodes[3].textContent;
+                     nombre = professor.childNodes[4].textContent;
+                     telefono = professor.childNodes[5].textContent;
+                     catCientifica = professor.childNodes[6].textContent;
+                     surname1 = professor.childNodes[7].textContent;
+                     catDocente = professor.childNodes[8].textContent;
+                     area1 = professor.childNodes[9].textContent;
+                     user1 = professor.childNodes[10].textContent;
+                }else{
+                 professor = profesorCollection[i];
+                 direccion = professor.childNodes[0].textContent;
+                 correo = slideString(professor.childNodes[1].textContent);
+                 idFacult = professor.childNodes[2].textContent;
+                 identificacion = professor.childNodes[3].textContent;
+                 apellidos = professor.childNodes[4].textContent;
+                 nombre = professor.childNodes[5].textContent;
+                 telefono = professor.childNodes[6].textContent;
+                 catCientifica = professor.childNodes[7].textContent;
+                 surname1 = professor.childNodes[8].textContent;
+                 catDocente = professor.childNodes[9].textContent;
+                 area1 = professor.childNodes[10].textContent;
+                 user1 = professor.childNodes[11].textContent;
+                }
+                if(catCientifica == ""){
+                    catCientifica ="--";
+                }
+                 var trueIdFacult = idVersionFaculty(idFacult,area1);
+               // $('#tableProfessors').append('<tr ><td>'+direccion+'</td><td>'+correo+'</td><td>'+idFacult+'</td><td>'+identificacion+'</td><td>'+apellidos+'</td><td>'+nombre+'</td><td>'+telefono+'</td><td>'+catCientifica+'</td><td>'+surname1+'</td><td>'+catDocente+'</td><td>'+area1+'</td><td>'+user1+'</td></tr>');
+               document.getElementById('professorList').innerHTML += '<ion-card>'+
+               '<img src="../../assets/imgs/prof.png">'+      
+               '<button onclick="locateProfessor('+area1+')">Aqui</button>'+                                               
+               
+               '<a href="#" style="background: beige;" class="list-group-item">Nombre     '+nombre+ ' '+apellidos+
+               '</a>'+                         
+               
+               '<a href="#" style="background: beige;" class="list-group-item">Facultad     '+idFacult+
+               '</a>'+
+
+               '<a href="#" style="background: beige;" class="list-group-item">Categoría Científica     '+catCientifica+
+               '</a>'+     
+               
+               '<a href="#" style="background: beige;" class="list-group-item">Categoría Docente     '+catDocente+
+               '</a>'+
+             
+            '</ion-card>'
+            }
+            }
+        },
+        error: function () {
+            alert('Disculpe, no hay coneccion con el servidor');
+        }
+    });
+
     // let xml = '<?xml version="1.0" encoding="UTF-8"?>'+
     // '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'+
     // 'xmlns:xsd="http://www.w3.org/2001/XMLSchema"'+
@@ -754,139 +849,65 @@ function getXmlProfessor()
     // '</soap:Body>'+
     // '</soap:Envelope>';
 
-    let xml = '<?xml version="1.0" encoding="utf-8"?>'+
-    '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">'+
-    '<soap:Body>'+
-    '<searchProfessor xmlns="http://www.mes.edu.cu/sigenu/ws/remote/professor">'+
-    '<criteria xmlns="">'+
-    '<email></email>'+
-    '<facultyId></facultyId>'+
-    '<identification></identification>'+
-    '<lastname></lastname>'+
-    '<name>Eduardo</name>'+
-    '<scientificCategory></scientificCategory>'+
-    '<surname></surname>'+
-    '<teachingCategory></teachingCategory>'+
-    '</criteria>'+
-    '</searchProfessor>'+
-    '</soap:Body>'+
-    '</soap:Envelope>'
-    console.log(xml);
+    // let xml = '<?xml version="1.0" encoding="utf-8"?>'+
+    // '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">'+
+    // '<soap:Body>'+
+    // '<searchProfessor xmlns="http://www.mes.edu.cu/sigenu/ws/remote/professor">'+
+    // '<criteria xmlns="">'+
+    // '<email></email>'+
+    // '<facultyId></facultyId>'+
+    // '<identification></identification>'+
+    // '<lastname></lastname>'+
+    // '<name>Eduardo</name>'+
+    // '<scientificCategory></scientificCategory>'+
+    // '<surname></surname>'+
+    // '<teachingCategory></teachingCategory>'+
+    // '</criteria>'+
+    // '</searchProfessor>'+
+    // '</soap:Body>'+
+    // '</soap:Envelope>'
+    // console.log(xml);
     
-    // let req = new XMLHttpRequest();
+    // // let req = new XMLHttpRequest();
     
-    // req.open('POST','http://10.8.1.8:8083/ProfessorService.asmx',true);
-    // req.setRequestHeader('Content-type','text/xml');
-    // req.onload = function(){     
-    //     processXmlProfessor(req.responseXML);
-    // }
-    // req.send(xml);
+    // // req.open('POST','http://10.8.1.8:8083/ProfessorService.asmx',true);
+    // // req.setRequestHeader('Content-type','text/xml');
+    // // req.onload = function(){     
+    // //     processXmlProfessor(req.responseXML);
+    // // }
+    // // req.send(xml);
 
-    var settings = {
-        "async": true,
-        "crossDomain": true,
-        "url": "http://10.8.1.8:8083/ProfessorService.asmx",
-        "method": "POST",
-        "headers": {
-          "content-type": "text/xml",
-          "cache-control": "no-cache",
-          "postman-token": "1388adc5-8e06-9eee-4202-e856f17ee87b"
-        },
-        "data": "<?xml version=\"1.0\" encoding=\"utf-8\"?><soap:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"><soap:Body><searchProfessor xmlns=\"http://www.mes.edu.cu/sigenu/ws/remote/professor\"><criteria xmlns=\"\"><email></email><facultyId></facultyId><identification></identification><lastname></lastname><name>Eduardo</name><scientificCategory></scientificCategory><surname></surname><teachingCategory></teachingCategory></criteria></searchProfessor></soap:Body></soap:Envelope>"
-      }
+    // var settings = {
+    //     "async": true,
+    //     "crossDomain": true,
+    //     "url": "http://10.8.1.8:8083/ProfessorService.asmx",
+    //     "method": "POST",
+    //     "headers": {
+    //       "content-type": "text/xml",
+    //       "cache-control": "no-cache",
+    //       "postman-token": "1388adc5-8e06-9eee-4202-e856f17ee87b"
+    //     },
+    //     "data": "<?xml version=\"1.0\" encoding=\"utf-8\"?><soap:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"><soap:Body><searchProfessor xmlns=\"http://www.mes.edu.cu/sigenu/ws/remote/professor\"><criteria xmlns=\"\"><email></email><facultyId></facultyId><identification></identification><lastname></lastname><name>Eduardo</name><scientificCategory></scientificCategory><surname></surname><teachingCategory></teachingCategory></criteria></searchProfessor></soap:Body></soap:Envelope>"
+    //   }
       
-      $.ajax(settings).done(function (response) {
+    //   $.ajax(settings).done(function (response) {
         
-        console.log(response);
-      });
+    //     console.log(response);
+    //   });
+
 }
 
 function processXmlProfessor(xml)
 {
-    var xmlDoc = jQuery.parseXML(xml);
-               var profesorCollection = xmlDoc.childNodes[0].childNodes[0].childNodes[0].childNodes;
-               if(profesorCollection.length == 0)
-                   alert("Disculpe no se encontraron profesores con esa caracteristca");
-                else{
-
-               var professor ;
-               var direccion ;
-               var correo;
-               var idFacult;
-               var identificacion ;
-               var apellidos ;
-               var nombre;
-               var telefono;
-               var catCientifica ;
-               var surname1;
-               var catDocente;
-               var area1 ;
-               var user1;
-               for (var i =0;i < profesorCollection.length;i++){
-                   professor = profesorCollection[i];
-                   if(profesorCollection[i].childNodes.length < 12 ){
-                        direccion = professor.childNodes[0].textContent;
-                        correo = "--";
-                        idFacult = professor.childNodes[1].textContent;
-                        identificacion = professor.childNodes[2].textContent;
-                        apellidos = professor.childNodes[3].textContent;
-                        nombre = professor.childNodes[4].textContent;
-                        telefono = professor.childNodes[5].textContent;
-                        catCientifica = professor.childNodes[6].textContent;
-                        surname1 = professor.childNodes[7].textContent;
-                        catDocente = professor.childNodes[8].textContent;
-                        area1 = professor.childNodes[9].textContent;
-                        user1 = professor.childNodes[10].textContent;
-                   }else{
-                    professor = profesorCollection[i];
-                    direccion = professor.childNodes[0].textContent;
-                    correo = slideString(professor.childNodes[1].textContent);
-                    idFacult = professor.childNodes[2].textContent;
-                    identificacion = professor.childNodes[3].textContent;
-                    apellidos = professor.childNodes[4].textContent;
-                    nombre = professor.childNodes[5].textContent;
-                    telefono = professor.childNodes[6].textContent;
-                    catCientifica = professor.childNodes[7].textContent;
-                    surname1 = professor.childNodes[8].textContent;
-                    catDocente = professor.childNodes[9].textContent;
-                    area1 = professor.childNodes[10].textContent;
-                    user1 = professor.childNodes[11].textContent;
-                   }
-                   if(catCientifica == ""){
-                       catCientifica ="--";
-                   }
-                   $('#professorList').append('<ion-card>'+
-
-                   '<img src="../../assets/imgs/avatar.png">'+
-                   '<ion-fab center right top>'+
-                     '<button ion-fab onclick="locateProfessor('+area1+')">'+
-                       '<ion-icon name="pin"></ion-icon>'+
-                     '</button>'+
-                   '</ion-fab>'+
-                 
-                   '<ion-item>'+
-                     '<label item-left>Nombre:</label>'+
-                     '<p item-left>'+nombre+'</p>'+
-                   '</ion-item>'+
-                 
-                   '<ion-item>'+
-                     '<label item-left>Facultad:</label>'+
-                     '<p item-left>'+idFacult+'</p>'+
-                   '</ion-item>'+
-                 
-                   '<ion-item>'+
-                   '<label item-left>Categoría Científica:</label>'+
-                   '<p item-left>'+catCientifica+'</p>'+
-                 '</ion-item>'+
-           
-                 '<ion-item>'+
-                   '<label item-left>Categoría Docente:</label>'+
-                   '<p item-left>'+catDocente+'</p>'+
-                 '</ion-item>'+
-                '</ion-card>')
-                }
-            }
+    let result = "";
+    for (var j = 0;j<xml.length;j++){
+        if(xml.charAt(j) == "<"){
+            result = xml.slice(j,xml.length);
+            break;
         }
+    }
+    return result;
+}
 
 function locateProfessor(area){
     directoryRequest(null,null,area);
@@ -1288,23 +1309,19 @@ function getInfoFromJson(response){
   var tableName = getTableName(response);
 
   if(tableName == 'buildings'){
-      info = '<h5>Nombre</h5><p>'+actual.name+'</p>';
-      info += '<h5>Tipo</h5><p>'+actual.fclass+'</p>';
-      info += '<h5>Facultad</h5><p>'+actual.name_faculty+'</p>';
+      info = '<h3>'+actual.name+'</h3>';
+      info += '<a href="#" style="background: beige;" class="list-group-item">Facultad     '+actual.name_faculty+'</a>';    
+      info += '<a href="#" class="list-group-item">Tipo'+'    '+actual.fclass+'</a>'; 
 
   }else if(tableName == 'areas'){
-    info = '<h5>Nombre</h5><p>'+actual.name+'</p>';
-    info += '<h5>Tipo</h5><p>'+actual.fclass+'</p>';
+    info = '<h3>'+actual.name+'</h3>';
+    info += '<a href="#" style="background: beige;" class="list-group-item">Facultad:     '+actual.fclass+'</a>'; 
 
   }else if(tableName == 'interest_places'){
-    info = '<h5>Nombre</h5><p>'+actual.name+'</p>';
-    info += '<h5>Tipo</h5><p>'+actual.fclass+'</p>';
+    info = '<h3>'+actual.name+'</h3>';
+    info += '<a href="#" style="background: beige;" class="list-group-item">Facultad:     '+actual.fclass+'</a>'; 
   }
-
-  document.getElementById('divInfoPopupId').style.display = 'block';
-    var content = document.getElementById('infoPopup');
-	content.innerHTML = info;
-                        
+     return info;                   
  
 }
 
@@ -1312,12 +1329,14 @@ function getInfoFromFeature(feature){
     var props = feature.getProperties();
     var info = '';
     for (i = 0; i < Object.keys(props).length ; i++)
-    if (typeof (props[Object.keys(props)[i]]) != 'object' )
-        info += "<p>" + Object.keys(props)[i]+ ': '+ props[Object.keys(props)[i]] + "</p>";
-
-        document.getElementById('divInfoPopupId').style.display = 'block';
-        var content = document.getElementById('infoPopup');
-        content.innerHTML = info;
+    if (typeof (props[Object.keys(props)[i]]) != 'object' ){
+        if(Object.keys(props)[i]=='Nombre'){
+            
+            info += '<h3>'+props[Object.keys(props)[i]]+'</h3>';
+        }else
+            info += '<a href="#" style="background: beige;" class="list-group-item">' + Object.keys(props)[i]+ ': '+ props[Object.keys(props)[i]] + '</a>';
+    }
+        return info;
 }
 
 // function mandarXML(){
@@ -1404,3 +1423,280 @@ function getInfoFromFeature(feature){
 //     }
 //   });
 // }
+
+function getStyleSLD(layername){
+    var sld ='<?xml version="1.0" encoding="UTF-8"?>';
+    sld+='<StyledLayerDescriptor version="1.0.0"  xmlns="http://www.opengis.net/sld" xmlns:ogc="http://www.opengis.net/ogc" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.0.0/StyledLayerDescriptor.xsd">';
+    sld+= '<NamedLayer>';
+    sld+='<Name>'+'idesoi:buildings'+'</Name>';
+    if(layername=="ConstructiveState"){
+        sld+='<UserStyle>';
+        sld+='<Name>' +'idesoi:buildings'+ '</Name>' ;
+        sld+='<Title>A small red flag</Title>';
+        sld+='<Abstract>A sample of how to use an SVG based symbolizer</Abstract>';
+        sld+='<FeatureTypeStyle>';
+        sld+='<Rule>';
+        sld+='<ogc:Filter>';
+        sld+='<ogc:PropertyIsEqualTo>';
+        sld+='<ogc:PropertyName>state</ogc:PropertyName>';
+        sld+='<ogc:Literal>Malo</ogc:Literal>';
+        sld+='</ogc:PropertyIsEqualTo>';
+        sld+='</ogc:Filter>';
+        sld+='<PolygonSymbolizer>';
+        sld+='<Fill>';
+        sld+='<!-- CssParameters allowed are fill (the color) and fill-opacity -->';
+        sld+='<CssParameter name="fill">#ec342e</CssParameter>';
+        sld+='</Fill>';
+        sld+='</PolygonSymbolizer>';
+        sld+='</Rule>';
+        sld+='<Rule>';
+        sld+='<ogc:Filter>';
+        sld+='<ogc:PropertyIsEqualTo>';
+        sld+='<ogc:PropertyName>state</ogc:PropertyName>';
+        sld+='<ogc:Literal>Regular</ogc:Literal>';
+        sld+='</ogc:PropertyIsEqualTo>';
+        sld+='</ogc:Filter>';
+        sld+='<PolygonSymbolizer>';
+        sld+='<Fill>';
+        sld+='<!-- CssParameters allowed are fill (the color) and fill-opacity -->';
+        sld+='<CssParameter name="fill">#ecd92e</CssParameter>';
+        sld+='</Fill>';
+        sld+='</PolygonSymbolizer>';
+        sld+='</Rule>';
+        sld+='<Rule>';
+        sld+='<ogc:Filter>';
+        sld+='<ogc:PropertyIsEqualTo>';
+        sld+='<ogc:PropertyName>state</ogc:PropertyName>';
+        sld+='<ogc:Literal>Bueno</ogc:Literal>';
+        sld+='</ogc:PropertyIsEqualTo>';
+        sld+='</ogc:Filter>';
+        sld+='<PolygonSymbolizer>';
+        sld+='<Fill>';
+        sld+='<!-- CssParameters allowed are fill (the color) and fill-opacity -->';
+        sld+='<CssParameter name="fill">#44ec2e</CssParameter>';
+        sld+='</Fill>';
+        sld+='</PolygonSymbolizer>';
+        sld+='</Rule>';
+        sld+='</FeatureTypeStyle>';
+        sld+='</UserStyle>';
+        sld+='</NamedLayer>';
+        sld+='</StyledLayerDescriptor>';
+        }
+    if(layername=="technicalStatus"){ //Es necesario crear una columna en la base de datos llamada(ESTADO_TECNICO) con los atrbutos(Muy Bueno, Bueno, Regular, Malo y Muy Malo)
+        sld+='<UserStyle>';
+        sld+='<Name>' +'idesoi:PARCELAS_CH_DB'+ '</Name>' ;
+        sld+='<Title>A small red flag</Title>';
+        sld+='<Abstract>A sample of how to use an SVG based symbolizer</Abstract>';
+        sld+='<FeatureTypeStyle>';
+        sld+='<Rule>';
+        sld+='<ogc:Filter>';
+        sld+='<ogc:PropertyIsEqualTo>';
+        sld+='<ogc:PropertyName>ESTADO_TECNICO</ogc:PropertyName>';
+        sld+='<ogc:Literal>Muy Bueno</ogc:Literal>';
+        sld+='</ogc:PropertyIsEqualTo>';
+        sld+='</ogc:Filter>';
+        sld+='<PolygonSymbolizer>';
+        sld+='<Fill>';
+        sld+='<!-- CssParameters allowed are fill (the color) and fill-opacity -->';
+        sld+='<CssParameter name="fill">#3e8f3e</CssParameter>';
+        sld+='</Fill>';
+        sld+='</PolygonSymbolizer>';
+        sld+='</Rule>';
+        sld+='<Rule>';
+        sld+='<ogc:Filter>';
+        sld+='<ogc:PropertyIsEqualTo>';
+        sld+='<ogc:PropertyName>ESTADO_TECNICO</ogc:PropertyName>';
+        sld+='<ogc:Literal>Bueno</ogc:Literal>';
+        sld+='</ogc:PropertyIsEqualTo>';
+        sld+='</ogc:Filter>';
+        sld+='<PolygonSymbolizer>';
+        sld+='<Fill>';
+        sld+='<!-- CssParameters allowed are fill (the color) and fill-opacity -->';
+        sld+='<CssParameter name="fill">#ffff00</CssParameter>';
+        sld+='</Fill>';
+        sld+='</PolygonSymbolizer>';
+        sld+='</Rule>';
+        sld+='<Rule>';
+        sld+='<ogc:Filter>';
+        sld+='<ogc:PropertyIsEqualTo>';
+        sld+='<ogc:PropertyName>ESTADO_TECNICO</ogc:PropertyName>';
+        sld+='<ogc:Literal>Malo</ogc:Literal>';
+        sld+='</ogc:PropertyIsEqualTo>';
+        sld+='</ogc:Filter>';
+        sld+='<PolygonSymbolizer>';
+        sld+='<Fill>';
+        sld+='<!-- CssParameters allowed are fill (the color) and fill-opacity -->';
+        sld+='<CssParameter name="fill">#ff0000</CssParameter>';
+        sld+='<CssParameter name="fill-opacity">#ff0000</CssParameter>';
+        sld+='</Fill>';
+        sld+='</PolygonSymbolizer>';
+        sld+='</Rule>';
+        sld+='<Rule>';
+        sld+='<ogc:Filter>';
+        sld+='<ogc:PropertyIsEqualTo>';
+        sld+='<ogc:PropertyName>ESTADO_TECNICO</ogc:PropertyName>';
+        sld+='<ogc:Literal>Muy Malo</ogc:Literal>';
+        sld+='</ogc:PropertyIsEqualTo>';
+        sld+='</ogc:Filter>';
+        sld+='<PolygonSymbolizer>';
+        sld+='<Fill>';
+        sld+='<!-- CssParameters allowed are fill (the color) and fill-opacity -->';
+        sld+='<CssParameter name="fill">#000000</CssParameter>';
+        sld+='</Fill>';
+        sld+='</PolygonSymbolizer>';
+        sld+='</Rule>';
+        sld+='<Rule>';
+        sld+='<ogc:Filter>';
+        sld+='<ogc:PropertyIsEqualTo>';
+        sld+='<ogc:PropertyName>ESTADO_TECNICO</ogc:PropertyName>';
+        sld+='<ogc:Literal>Regular</ogc:Literal>';
+        sld+='</ogc:PropertyIsEqualTo>';
+        sld+='</ogc:Filter>';
+        sld+='<PolygonSymbolizer>';
+        sld+='<Fill>';
+        sld+='<!-- CssParameters allowed are fill (the color) and fill-opacity -->';
+        sld+='<CssParameter name="fill">#ff7701</CssParameter>';
+        sld+='</Fill>';
+        sld+='</PolygonSymbolizer>';
+        sld+='</Rule>';
+        sld+='</FeatureTypeStyle>';
+        sld+='</UserStyle>';
+        sld+='</NamedLayer>';
+        sld+='</StyledLayerDescriptor>';
+        }
+    if(layername=="values"){//Es necesario crear una columna en la base de datos llamada(VALOR_CULTURAL) con los atrbutos(Valor Excepcional, Valor Alto, Valor Medio y Sin Valor)
+        sld+='<UserStyle>';
+        sld+='<Name>' +'AA'+ '</Name>' ;
+        sld+='<Title>A small red flag</Title>';
+        sld+='<Abstract>A sample of how to use an SVG based symbolizer</Abstract>';
+        sld+='<FeatureTypeStyle>';
+        sld+='<Rule>';
+        sld+='<ogc:Filter>';
+        sld+='<ogc:PropertyIsEqualTo>';
+        sld+='<ogc:PropertyName>VALOR_CULTURAL</ogc:PropertyName>';
+        sld+='<ogc:Literal>Valor Excepcional</ogc:Literal>';
+        sld+='</ogc:PropertyIsEqualTo>';
+        sld+='</ogc:Filter>';
+        sld+='<PolygonSymbolizer>';
+        sld+='<Fill>';
+        sld+='<!-- CssParameters allowed are fill (the color) and fill-opacity -->';
+        sld+='<CssParameter name="fill">#3e8f3e</CssParameter>';
+        sld+='</Fill>';
+        sld+='</PolygonSymbolizer>';
+        sld+='</Rule>';
+        sld+='<Rule>';
+        sld+='<ogc:Filter>';
+        sld+='<ogc:PropertyIsEqualTo>';
+        sld+='<ogc:PropertyName>VALOR_CULTURAL</ogc:PropertyName>';
+        sld+='<ogc:Literal>Valor Alto</ogc:Literal>';
+        sld+='</ogc:PropertyIsEqualTo>';
+        sld+='</ogc:Filter>';
+        sld+='<PolygonSymbolizer>';
+        sld+='<Fill>';
+        sld+='<!-- CssParameters allowed are fill (the color) and fill-opacity -->';
+        sld+='<CssParameter name="fill">#ffff00</CssParameter>';
+        sld+='</Fill>';
+        sld+='</PolygonSymbolizer>';
+        sld+='</Rule>';
+        sld+='<Rule>';
+        sld+='<ogc:Filter>';
+        sld+='<ogc:PropertyIsEqualTo>';
+        sld+='<ogc:PropertyName>VALOR_CULTURAL</ogc:PropertyName>';
+        sld+='<ogc:Literal>Valor Medio</ogc:Literal>';
+        sld+='</ogc:PropertyIsEqualTo>';
+        sld+='</ogc:Filter>';
+        sld+='<PolygonSymbolizer>';
+        sld+='<Fill>';
+        sld+='<!-- CssParameters allowed are fill (the color) and fill-opacity -->';
+        sld+='<CssParameter name="fill">#ff7701</CssParameter>';
+        sld+='</Fill>';
+        sld+='</PolygonSymbolizer>';
+        sld+='</Rule>';
+        sld+='<Rule>';
+        sld+='<ogc:Filter>';
+        sld+='<ogc:PropertyIsEqualTo>';
+        sld+='<ogc:PropertyName>VALOR_CULTURAL</ogc:PropertyName>';
+        sld+='<ogc:Literal>Sin Valor</ogc:Literal>';
+        sld+='</ogc:PropertyIsEqualTo>';
+        sld+='</ogc:Filter>';
+        sld+='<PolygonSymbolizer>';
+        sld+='<Fill>';
+        sld+='<!-- CssParameters allowed are fill (the color) and fill-opacity -->';
+        sld+='<CssParameter name="fill">#000000</CssParameter>';
+        sld+='</Fill>';
+        sld+='</PolygonSymbolizer>';
+        sld+='</Rule>';
+        sld+='</FeatureTypeStyle>';
+        sld+='</UserStyle>';
+        sld+='</NamedLayer>';
+        sld+='</StyledLayerDescriptor>';
+    }
+     if(layername=="potential"){//Es necesario crear una columna en la base de datos llamada(VALOR_CULTURAL) con los atrbutos(Valor Excepcional, Valor Alto, Valor Medio y Sin Valor)
+        sld+='<UserStyle>';
+        sld+='<Name>' +'AA'+ '</Name>' ;
+        sld+='<Title>A small red flag</Title>';
+        sld+='<Abstract>A sample of how to use an SVG based symbolizer</Abstract>';
+        sld+='<FeatureTypeStyle>';
+        sld+='<Rule>';
+        sld+='<ogc:Filter>';
+        sld+='<ogc:PropertyIsEqualTo>';
+        sld+='<ogc:PropertyName>USO_NUEVO</ogc:PropertyName>';
+        sld+='<ogc:Literal>NOT BUILT</ogc:Literal>';
+        sld+='</ogc:PropertyIsEqualTo>';
+        sld+='</ogc:Filter>';
+        sld+='<PolygonSymbolizer>';
+        sld+='<Fill>';
+        sld+='<!-- CssParameters allowed are fill (the color) and fill-opacity -->';
+        sld+='<CssParameter name="fill">#449d44</CssParameter>';
+        sld+='</Fill>';
+        sld+='</PolygonSymbolizer>';
+        sld+='</Rule>';
+        sld+='<Rule>';
+        sld+='<ogc:Filter>';
+        sld+='<ogc:PropertyIsEqualTo>';
+        sld+='<ogc:PropertyName>ESTADO_TECNICO</ogc:PropertyName>';
+        sld+='<ogc:Literal>Malo</ogc:Literal>';
+        sld+='</ogc:PropertyIsEqualTo>';
+        sld+='</ogc:Filter>';
+        sld+='<PolygonSymbolizer>';
+        sld+='<Fill>';
+        sld+='<!-- CssParameters allowed are fill (the color) and fill-opacity -->';
+        sld+='<CssParameter name="fill">#808080</CssParameter>';
+        sld+='</Fill>';
+        sld+='</PolygonSymbolizer>';
+        sld+='</Rule>';
+        sld+='<Rule>';
+        sld+='<ogc:Filter>';
+        sld+='<ogc:PropertyIsEqualTo>';
+        sld+='<ogc:PropertyName>ESTADO_TECNICO</ogc:PropertyName>';
+        sld+='<ogc:Literal>Muy Malo</ogc:Literal>';
+        sld+='</ogc:PropertyIsEqualTo>';
+        sld+='</ogc:Filter>';
+        sld+='<PolygonSymbolizer>';
+        sld+='<Fill>';
+        sld+='<!-- CssParameters allowed are fill (the color) and fill-opacity -->';
+        sld+='<CssParameter name="fill">#ff0000</CssParameter>';
+        sld+='</Fill>';
+        sld+='</PolygonSymbolizer>';
+        sld+='</Rule>';
+        sld+='<Rule>';
+        sld+='<ogc:Filter>';
+        sld+='<ogc:PropertyIsEqualTo>';
+        sld+='<ogc:PropertyName>VALOR_CULTURAL</ogc:PropertyName>';
+        sld+='<ogc:Literal>Sin Valor</ogc:Literal>';
+        sld+='</ogc:PropertyIsEqualTo>';
+        sld+='</ogc:Filter>';
+        sld+='<PolygonSymbolizer>';
+        sld+='<Fill>';
+        sld+='<!-- CssParameters allowed are fill (the color) and fill-opacity -->';
+        sld+='<CssParameter name="fill">#000000</CssParameter>';
+        sld+='</Fill>';
+        sld+='</PolygonSymbolizer>';
+        sld+='</Rule>';
+        sld+='</FeatureTypeStyle>';
+        sld+='</UserStyle>';
+        sld+='</NamedLayer>';
+        sld+='</StyledLayerDescriptor>';
+    }
+    return sld;
+}

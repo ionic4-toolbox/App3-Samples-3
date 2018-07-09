@@ -3,6 +3,8 @@ import { IonicPage, NavController, NavParams,ModalController,ViewController } fr
 import {ModalRoutePage} from '../modal-route/modal-route';
 import {ModalDirectoryLocationPage} from '../modal-directory-location/modal-directory-location'
 import{ModalDirectoryProximityModePage} from '../modal-directory-proximity-mode/modal-directory-proximity-mode'
+import {ModalProfessorPage} from '../modal-professor/modal-professor'
+import {ModalReportPage} from '../modal-report/modal-report'
 /**
  * Generated class for the ModalDirectoryDistanceModePage page.
  *
@@ -24,8 +26,19 @@ export class ModalDirectoryDistanceModePage {
     console.log('ionViewDidLoad ModalDirectoryDistanceModePage');
   }
 
+  openModalDirectory(){
+    let modalq = this.modal.create(ModalDirectoryLocationPage);
+    modalq.present();
+    this.view.dismiss();
+  }
+  
   openModalRoute(){
     let modalq = this.modal.create(ModalRoutePage);
+    modalq.present();
+    this.view.dismiss();
+  }
+  openModalDirectoryDistanceMode(){
+    let modalq = this.modal.create(ModalDirectoryDistanceModePage);
     modalq.present();
     this.view.dismiss();
   }
@@ -34,12 +47,21 @@ export class ModalDirectoryDistanceModePage {
     modalq.present();
     this.view.dismiss();
   }
-  openModalDirectory(){
-    let modalq = this.modal.create(ModalDirectoryLocationPage);
+
+  openModalProfessor(){
+    let modalq = this.modal.create(ModalProfessorPage);
     modalq.present();
     this.view.dismiss();
   }
 
+  openProfessorPage(){
+    this.navCtrl.push(ModalProfessorPage);
+  }
+  openModalReport(){
+    let modalq = this.modal.create(ModalReportPage);
+    modalq.present();
+    this.view.dismiss();
+  }
 
   closeModal(){
     this.view.dismiss();

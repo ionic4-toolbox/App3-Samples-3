@@ -278,6 +278,27 @@ function OpenLayersInit(mapID, mapExtent, centerPosition, zoomLevel, geocodeCont
 	// 	else if (interactionMode == 'coordinate')
 	// 		CaptureCoords(evt.coordinate);
 	// });
+	const container = document.getElementById('popup');
+      const content = document.getElementById('popup-content');
+      const closer = document.getElementById('popup-closer');
+
+
+      /**
+       * Create an overlay to anchor the popup to the map.
+       */
+      const popup = new ol.Overlay({
+        element: container,
+        autoPan: true,
+        autoPanAnimation: {
+          duration: 250
+        }
+	  });
+	  map.addOverlay(popup);
+	  closer.onclick = function() {
+        popup.setPosition(undefined);
+        closer.blur();
+        return false;
+      };
 
     map.on('singleclick', function(evt) {
 
@@ -302,24 +323,25 @@ function OpenLayersInit(mapID, mapExtent, centerPosition, zoomLevel, geocodeCont
 			$.ajax({
 			url:url,
 			success:function (response) {
-
+			        	
 				if(response.features.length != 0){
 
 					if(feature == undefined){
-						getInfoFromJson(response);
-												
+						let html = getInfoFromJson(response);
+						content.innerHTML = html;	
+						popup.setPosition(evt.coordinate);
 						//popup.show(evt.coordinate,info);
 					}else{
-						getInfoFromFeature(feature);
-						//ShowInfo (feature, popup, evt.coordinate);
-						
-						
+						let html = getInfoFromFeature(feature);
+						content.innerHTML = html;
+						popup.setPosition(evt.coordinate);
+												
 					}
 				
 				
 				}
-				}
-			});
+			}
+		});
 		}
 		}else if(interactionMode == 'coordinate'){
 			//CaptureCoords(evt.coordinate);
@@ -592,6 +614,30 @@ function CreateObjectFromJSON(olayer,json,aAttributes,layerName){
 	return jsonFeature;
 }
 
+function setStyleWMS(type) {
+    //if(CheckLayerName('Base R'))
+    DeleteLayer('Planimetría GeoServer');
+    var districtLayer = new ol.layer.Tile({
+        title: 'Base R',
+        type: 'radio',
+        opacity: 0.5,
+        extent: [-180.0, -90.0, 180.0, 90.0],
+        source: new ol.source.TileWMS({
+            url: 'http://192.168.137.1:1234/geoserver/idesoi/wms',
+            crossOrigin: 'anonymous',
+            params: {
+                'LAYERS': 'Basecuba',
+                VERSION: '1.1.0',
+                STYLES: undefined,
+                SLD_BODY: getStyleSLD('ConstructiveState'),
+                TILED: false
+            },
+        }),
+    });
+    map.addLayer(districtLayer);
+
+}
+
 function CreateObjectFromJSONSelected(olayer,json,aAttributes,color){
 	var format = new ol.format.GeoJSON();
 	var jsonFeature = format.readFeature(json);
@@ -607,6 +653,7 @@ function CreateObjectFromJSONSelected(olayer,json,aAttributes,color){
 	return jsonFeature;
 }
 
+//Funcion para crear Linea entre dos puntos
 function CreateLineString(olayer,coordinates){
 
 	var feature = new ol.Feature({

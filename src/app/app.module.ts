@@ -21,6 +21,7 @@ import {ModalRoutePage} from '../pages/modal-route/modal-route';
 import {ModalDirectoryDistanceModePage} from '../pages/modal-directory-distance-mode/modal-directory-distance-mode'
 import {ModalDirectoryProximityModePage} from '../pages/modal-directory-proximity-mode/modal-directory-proximity-mode'
 import {ProfessorListPage} from '../pages/professor-list/professor-list';
+import {ModalReportPage} from '../pages/modal-report/modal-report';
 
 @NgModule({
   declarations: [
@@ -34,7 +35,8 @@ import {ProfessorListPage} from '../pages/professor-list/professor-list';
     RouteTabPage,
     ModalRoutePage,
     ModalDirectoryProximityModePage,
-    ProfessorListPage
+    ProfessorListPage,
+    ModalReportPage
   ],
   imports: [
     BrowserModule,
@@ -53,7 +55,8 @@ import {ProfessorListPage} from '../pages/professor-list/professor-list';
     ModalRoutePage,
     ModalDirectoryDistanceModePage,
     ModalDirectoryProximityModePage,
-    ProfessorListPage
+    ProfessorListPage,
+    ModalReportPage
   ],
   providers: [
     StatusBar,

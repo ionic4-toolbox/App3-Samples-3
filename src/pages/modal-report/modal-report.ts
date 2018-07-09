@@ -2,11 +2,11 @@ import { Component } from '@angular/core';
 import { IonicPage,ModalController, NavController, NavParams,ViewController } from 'ionic-angular';
 import {ModalRoutePage} from '../modal-route/modal-route';
 import {ModalDirectoryDistanceModePage} from '../modal-directory-distance-mode/modal-directory-distance-mode'
-import {ModalDirectoryLocationPage} from '../modal-directory-location/modal-directory-location'
+import {ModalDirectoryProximityModePage} from '../modal-directory-proximity-mode/modal-directory-proximity-mode'
 import {ModalProfessorPage} from '../modal-professor/modal-professor'
-import {ModalReportPage} from '../modal-report/modal-report'
+
 /**
- * Generated class for the ModalDirectoryProximityModePage page.
+ * Generated class for the ModalReportPage page.
  *
  * See https://ionicframework.com/docs/components/#navigation for more info on
  * Ionic pages and navigation.
@@ -14,22 +14,17 @@ import {ModalReportPage} from '../modal-report/modal-report'
 
 @IonicPage()
 @Component({
-  selector: 'page-modal-directory-proximity-mode',
-  templateUrl: 'modal-directory-proximity-mode.html',
+  selector: 'page-modal-report',
+  templateUrl: 'modal-report.html',
 })
-export class ModalDirectoryProximityModePage {
+export class ModalReportPage {
 
-  constructor(public navCtrl: NavController, public navParams: NavParams,private view:ViewController,private modal:ModalController) {
+  constructor(public navCtrl: NavController, public navParams: NavParams, private view: ViewController,
+    private modal:ModalController) {
   }
 
   ionViewDidLoad() {
-    console.log('ionViewDidLoad ModalDirectoryProximityModePage');
-  }
-  
-  openModalDirectory(){
-    let modalq = this.modal.create(ModalDirectoryLocationPage);
-    modalq.present();
-    this.view.dismiss();
+    console.log('ionViewDidLoad ModalReportPage');
   }
 
   openModalRoute(){
@@ -58,14 +53,8 @@ export class ModalDirectoryProximityModePage {
     this.navCtrl.push(ModalProfessorPage);
   }
 
-  openModalReport(){
-    let modalq = this.modal.create(ModalReportPage);
-    modalq.present();
-    this.view.dismiss();
-  }
 
   closeModal(){
     this.view.dismiss();
   }
-
 }

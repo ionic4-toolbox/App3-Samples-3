@@ -4,6 +4,7 @@ import {ModalRoutePage} from '../modal-route/modal-route';
 import {ModalDirectoryDistanceModePage} from '../modal-directory-distance-mode/modal-directory-distance-mode'
 import {ModalDirectoryProximityModePage} from '../modal-directory-proximity-mode/modal-directory-proximity-mode'
 import {ModalProfessorPage} from '../modal-professor/modal-professor'
+import {ModalReportPage} from '../modal-report/modal-report'
 /**
  * Generated class for the ModalDirectoryLocationPage page.
  *
@@ -56,6 +57,12 @@ export class ModalDirectoryLocationPage {
 
   openProfessorPage(){
     this.navCtrl.push(ModalProfessorPage);
+  }
+
+  openModalReport(){
+    let modalq = this.modal.create(ModalReportPage);
+    modalq.present();
+    this.view.dismiss();
   }
 
 

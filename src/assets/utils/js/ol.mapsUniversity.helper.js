@@ -15,7 +15,7 @@ function functionInitLayer(){
 }
 
 function setCoordinateGPS(gps){
-    this.coordinateGPS = gps;
+    coordinateGPS = gps;
 }
 //Funcion para cambiar el modo que esta activo (coordenadas o informacion)
 function setModalSelectedRoute(){
@@ -37,16 +37,22 @@ function setModalSelectedRoute(){
 function setModalSelectedDirectDistance(){
     
     selectedMode = 'Distance';
+    setCoordinatesMode();
+
     
 }
 
 function setModalSelectedDirectProximity(){
     selectedMode = 'Proximity';
+    setCoordinatesMode();
     
 }
 //Funcion para insercion de coordenadas y trazado de rutas
 function insetCoords(coord){ 
-    //insercion de datos en variable global InitPoint  
+    //insercion de datos en variable global InitPoint 
+    if(coordinateGPS != 0){
+        initPoint = coordinateGPS;
+    } 
     if(initPoint == 0){
         initPoint = coord;
         //console.log(initPoint);
@@ -266,18 +272,23 @@ function directoryRequest(modeAux,coord,param){
     }
   }else if(modeAux == 'Basic'){
       
-        name = document.getElementById('directorySearch').value;
-        requestNumber = document.getElementById('directoryMaxResponse').value;
+        if(param !=null)
+            name = param;
+        else{
+            name = document.getElementById('directorySearch').value;
+            requestNumber = document.getElementById('directoryMaxResponse').value;
+        }
+
     
-    if(requestNumber == ''){
-        requestNumber = 5;
-    }
+  }
+  if(requestNumber == ''){
+    requestNumber = 5;
+}
+  if(modeAux == 'Rout'){
+    name = param;
   }
 // Fin de condiciones para capturar datos en la vista
   
-if(param != null){
-      name = param;
-  }
   
   //Inicio de conformacion de XML para enviar, etiquetas de propiedad
   let poiProperty='<POIProperties>';
@@ -361,7 +372,10 @@ if(param != null){
         if(param == null){      
             processXmlDirectory(req.responseXML,false);
         }else{
-            processXmlDirectory (req.responseXML,true);
+            if(modeAux == 'Basic')
+                processXmlDirectory(req.responseXML,false);
+            else
+                processXmlDirectory (req.responseXML,true);
         }
     }
     
@@ -434,8 +448,8 @@ function drawRoute(){
     let fin = document.getElementById('ruteFinalPoint').value;
 
     if(init != '' && fin !=''){
-        directoryRequest('Info',null,init);
-        directoryRequest('Info',null,fin);
+        directoryRequest('Rout',null,init);
+        directoryRequest('Rout',null,fin);
         setTimeout(function(){
             routeRequest();
         },2000);
@@ -510,12 +524,15 @@ function processXmlDirectory(xml,isForRoute){
                     }
                             
                 ]);
+                console.log('Entro');
             //Obtener posicion de el objeto
             let point = poiContent.children[0].children[2];
             let pos = point.children[0].innerHTML;
             //validaciones para iniciar punto de inicio y punto de fin
-            if(isForRoute == false)
+            if(isForRoute == false){
                 drawPoint(layer,getLongitud(pos),getLatitud(pos),arrAttrinbutes);
+                console.log('dibujo');
+            }
             else{ 
                 if(initPoint ==0){
                     let coords = new Array();
@@ -768,6 +785,7 @@ function getXmlProfessor()
             var catDocente;
             var area1 ;
             var user1;
+            let count =0;
             $('#esconderProf').html("<table id='tableProfessors' class='table-responsive'></table>");
             for (var i =0;i < profesorCollection.length;i++){
                 professor = profesorCollection[i];
@@ -802,25 +820,30 @@ function getXmlProfessor()
                 if(catCientifica == ""){
                     catCientifica ="--";
                 }
-                 var trueIdFacult = idVersionFaculty(idFacult,area1);
+               
+                 //var trueIdFacult = idVersionFaculty(idFacult,area1);
                // $('#tableProfessors').append('<tr ><td>'+direccion+'</td><td>'+correo+'</td><td>'+idFacult+'</td><td>'+identificacion+'</td><td>'+apellidos+'</td><td>'+nombre+'</td><td>'+telefono+'</td><td>'+catCientifica+'</td><td>'+surname1+'</td><td>'+catDocente+'</td><td>'+area1+'</td><td>'+user1+'</td></tr>');
                document.getElementById('professorList').innerHTML += '<ion-card>'+
                '<img src="../../assets/imgs/prof.png">'+      
-               '<button onclick="locateProfessor('+area1+')">Aqui</button>'+                                               
+               "<button onclick=locateProfessor("+count+")>Localizar</button>"+                                               
                
-               '<a href="#" style="background: beige;" class="list-group-item">Nombre     '+nombre+ ' '+apellidos+
+               '<a href="#" style="background: beige;" class="list-group-item">Nombre:     '+nombre+ ' '+apellidos+
                '</a>'+                         
                
-               '<a href="#" style="background: beige;" class="list-group-item">Facultad     '+idFacult+
+               '<a href="#"  class="list-group-item">Facultad:     '+idFacult+
                '</a>'+
 
                '<a href="#" style="background: beige;" class="list-group-item">Categoría Científica     '+catCientifica+
                '</a>'+     
                
-               '<a href="#" style="background: beige;" class="list-group-item">Categoría Docente     '+catDocente+
+               '<a href="#"  class="list-group-item">Categoría Docente:     '+catDocente+
                '</a>'+
+
+               '<a href="#" id='+count+' style="background: beige;" class="list-group-item">Área     '+area1+
+               '</a>'
              
             '</ion-card>'
+            count++;
             }
             }
         },
@@ -897,6 +920,28 @@ function getXmlProfessor()
 
 }
 
+function prosessAreaProfessor(area){
+    let result = "";
+let aux;
+    for (var j = 0;j<area.length;j++){
+        aux = area.slice(j,j+3);
+        
+        if(aux == 'CIV' || aux == 'ELE' || aux == 'INF' || aux == 'AUT' || aux == 'QUÍ'){
+            for(var i = j;i<area.length;i++){
+                if(area.charAt(i) == "." || area.charAt(i) == " "){
+                    result = area.slice(j,i);
+                    
+                    break;
+                }
+            }
+            break;
+        }
+    }
+    if(result == "")
+         result = area;
+    return result;
+}
+
 function processXmlProfessor(xml)
 {
     let result = "";
@@ -909,8 +954,12 @@ function processXmlProfessor(xml)
     return result;
 }
 
-function locateProfessor(area){
-    directoryRequest(null,null,area);
+function locateProfessor(id){
+   let area = document.getElementById(id).innerText;
+   area = prosessAreaProfessor(area);
+   console.log(area);
+   
+    directoryRequest('Basic',null,area);
 }
 
 //Divide un String siempre que contenga una coma
@@ -1699,4 +1748,28 @@ function getStyleSLD(layername){
         sld+='</StyledLayerDescriptor>';
     }
     return sld;
+}
+
+function getBuildingAjaxReport(){
+    $.ajax({
+        url: "http://10.9.5.52/SIGCUJAE/web/index.php?r=building/getbuilding",
+        success: function (response) {
+            drawBuildingsReport(response);
+        },
+        error: function (xhr, status, error) {
+            alert("Error:  "+error);
+        }
+    });
+
+}
+
+
+function drawBuildingsReport(json){
+    var fclassArray = ["Bueno","Regular","Malo"];
+    CretaePolygonsScaleColors(json,"Selected",fclassArray,"greenToRed");
+
+
+            DeleteLayerByName("POI");
+            getPoiAjax();
+
 }

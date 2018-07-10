@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { IonicPage, NavController, NavParams, ModalController } from 'ionic-angular';
+import { IonicPage, NavController, NavParams, ModalController,ViewController } from 'ionic-angular';
 
 
 /**
@@ -16,11 +16,15 @@ import { IonicPage, NavController, NavParams, ModalController } from 'ionic-angu
 })
 export class ProfessorListPage {
 
-  constructor(public navCtrl: NavController, public navParams: NavParams, public modalCtrl: ModalController) {
+  constructor(public navCtrl: NavController, public navParams: NavParams, public modalCtrl: ModalController, public viewCtrl: ViewController) {
   }
 
   ionViewDidLoad() {
     console.log('ionViewDidLoad ProfessorListPage');
+  }
+
+  closeModal() {
+    this.viewCtrl.dismiss();
   }
 
 }

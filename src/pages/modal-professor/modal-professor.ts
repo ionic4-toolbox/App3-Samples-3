@@ -68,6 +68,7 @@ export class ModalProfessorPage {
   }
   openProfessorList(){
     this.navCtrl.push(ProfessorListPage);
+    this.viewCtrl.dismiss();
   }
 
 

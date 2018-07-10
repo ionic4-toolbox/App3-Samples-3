@@ -623,7 +623,7 @@ function setStyleWMS(type) {
         opacity: 0.5,
         extent: [-180.0, -90.0, 180.0, 90.0],
         source: new ol.source.TileWMS({
-            url: 'http://192.168.137.1:1234/geoserver/idesoi/wms',
+            url: 'http://10.9.5.52:8080/geoserver/idesoi/wms',
             crossOrigin: 'anonymous',
             params: {
                 'LAYERS': 'Basecuba',
@@ -1703,6 +1703,7 @@ function geoloctionFunction(){
 
 
 		setTimeout(function(){
+			//alert('hello');
 			//alert("Acepte la localizacion del navegador");
 			var position = geolocation.getPosition();
 
@@ -1791,6 +1792,7 @@ function geoloctionFunction(){
                         lat = position[1];
                         pointer.long = long;
 						pointer.lat = lat;
+						//alert(long);
 						setCoordinateGPS(position);
 						if(long != previusLong && lat != previusLat) {
 

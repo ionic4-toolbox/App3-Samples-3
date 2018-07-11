@@ -1752,7 +1752,7 @@ function getStyleSLD(layername){
 
 function getBuildingAjaxReport(){
     $.ajax({
-        url: "http://10.9.5.52/SIGCUJAE/web/index.php?r=building/getbuilding",
+        url: "http://192.168.137.1:12/SIGCUJAE/web/index.php?r=building/getbuilding",
         success: function (response) {
             drawBuildingsReport(response);
         },
